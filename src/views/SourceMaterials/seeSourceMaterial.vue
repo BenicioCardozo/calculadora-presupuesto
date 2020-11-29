@@ -1,6 +1,6 @@
 <template>
 	<div id="container">
-		<h1>{{ nameOfSourceMaterial.name }}</h1>
+		<h1>{{ name }}</h1>
 		<b-card-group columns>
 			<b-card
 				header="Color"
@@ -9,9 +9,13 @@
 				align="center"
 			>
 				<b-card-text v-if="!this.$store.state.edit" text-tag="h4">{{
-					characteristicsOfSourceMaterial.color
+					characteristics.color
 				}}</b-card-text>
-				<b-form-select v-else :options="colors"></b-form-select>
+				<b-form-select
+					v-model="characteristics.color"
+					v-else
+					:options="colors"
+				></b-form-select>
 			</b-card>
 			<!-- I didn't include the measurement unit field because that won't change very often -->
 			<b-card
@@ -21,9 +25,13 @@
 				align="center"
 			>
 				<b-card-text text-tag="h4" v-if="!this.$store.state.edit">{{
-					characteristicsOfSourceMaterial.quality
+					characteristics.quality
 				}}</b-card-text>
-				<b-form-select v-else :options="qualities"></b-form-select>
+				<b-form-select
+					v-model="characteristics.quality"
+					v-else
+					:options="qualities"
+				></b-form-select>
 			</b-card>
 			<b-card
 				header="Precio"
@@ -34,7 +42,7 @@
 				<b-card-text text-tag="h4" v-if="!this.$store.state.edit">{{
 					`$ ${price.amount.toLocaleString()}/${price.measurementUnit}`
 				}}</b-card-text>
-				<b-input v-else type="number"></b-input>
+				<b-input v-model="price.amount" v-else type="number"></b-input>
 			</b-card>
 		</b-card-group>
 	</div>
@@ -42,40 +50,51 @@
 
 <script>
 	import { db } from '../../firebase/firebase.js';
+
 	export default {
 		data() {
 			return {
-				nameOfSourceMaterial: undefined,
-				characteristicsOfSourceMaterial: undefined,
+				name: undefined,
 				price: 0,
-				newSourceMaterialsCharacteristics: undefined,
 				qualities: ['Alta', 'Media', 'Baja'],
 				colors: ['Beige', 'Azul', 'Blanco'],
+				price: undefined,
+				characteristics: {
+					color: undefined,
+					quality: undefined,
+				},
 			};
 		},
 		created() {
+			if (!this.$store.state.nameOfActualItem) return false;
 			db.ref('/sourceMaterials/' + this.$store.state.nameOfActualItem).on(
 				'value',
 				snapshot => {
-					this.nameOfSourceMaterial = {
-						name: snapshot.val().name,
-					};
+					this.name = snapshot.val().name;
 
 					this.price = snapshot.val().price;
 
-					this.characteristicsOfSourceMaterial = snapshot.val().characteristics;
+					this.characteristics = snapshot.val().characteristics;
 				}
 			);
 		},
-		methods: {
-			editContent(field) {
-				this.characteristicsOfSourceMaterial.edit = false;
-				db.ref(
-					`sourceMaterials/${this.nameOfSourceMaterial.name}/${field}`
-				).set(this.newSourceMaterialsCharacteristics);
+
+		watch: {
+			price: {
+				handler(newPrice) {
+					db.ref(`/sourceMaterials/${this.name}/price`).set(newPrice);
+				},
+				deep: true,
+			},
+			characteristics: {
+				handler(newCharacteristics) {
+					db.ref(`/sourceMaterials/${this.name}/characteristics`).set(
+						newCharacteristics
+					);
+				},
+				deep: true,
 			},
 		},
-		computed: {},
 	};
 </script>
 

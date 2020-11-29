@@ -60,10 +60,8 @@ export default new Vuex.Store({
         if (snapshot.val()) {
           for (const key in snapshot.val()) {
             const sourceMaterial = snapshot.val()[key];
-            console.log(sourceMaterial)
             sourceMaterials.push({ name: sourceMaterial.name, characteristics: sourceMaterial.characteristics, price: sourceMaterial.price })
             state.sourceMaterials = sourceMaterials
-            console.log(state.sourceMaterials)
           }
         }
         else {
