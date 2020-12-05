@@ -1,45 +1,50 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
-import createSourceMaterials from '../views/SourceMaterials/createSourceMaterials.vue'
-import sourceMaterials from '../views/SourceMaterials/sourceMaterials.vue';
-import seeSourceMaterial from '../views/SourceMaterials/seeSourceMaterial.vue';
+import Vue from "vue";
+import VueRouter from "vue-router";
+import createSourceMaterials from "../views/SourceMaterials/createSourceMaterials.vue";
+import sourceMaterials from "../views/SourceMaterials/sourceMaterials.vue";
+import seeSourceMaterial from "../views/SourceMaterials/seeSourceMaterial.vue";
+import products from "../views/Products/products.vue";
+import createProducts from "../views/Products/createProduct.vue";
+import seeProduct from "../views/Products/seeProduct.vue";
 
-
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
 const routes = [
   {
-    path: '/',
-    name: 'Home',
-    component: Home
+    path: "/",
+    component: sourceMaterials,
+  },
+  ,
+  {
+    path: "/crear-materia-prima",
+    component: createSourceMaterials,
   },
   {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+    path: "/materias-primas",
+    component: sourceMaterials,
   },
   {
-    path: '/crear-materia-prima',
-    component: createSourceMaterials
+    path: "/ver-materia-prima",
+    component: seeSourceMaterial,
   },
   {
-    path: '/materias-primas',
-    component: sourceMaterials
+    path: "/productos",
+    component: products,
   },
   {
-    path: '/ver-materia-prima',
-    component: seeSourceMaterial
-  }
-]
+    path: "/crear-producto",
+    component: createProducts,
+  },
+  {
+    path: "/ver-producto",
+    component: seeProduct,
+  },
+];
 
 const router = new VueRouter({
-  mode: 'history',
+  mode: "history",
   base: process.env.BASE_URL,
-  routes
-})
+  routes,
+});
 
-export default router
+export default router;

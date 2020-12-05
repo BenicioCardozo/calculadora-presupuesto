@@ -1,5 +1,9 @@
 module.exports = {
-    publicPath: process.env.NODE_ENV === 'production'
-        ? '/calculadora-presupuesto/'
-        : '/'
-}
+  configureWebpack: {
+    devServer: {
+      headers: { "Access-Control-Allow-Origin": "*" },
+    },
+  },
+  publicPath:
+    process.env.NODE_ENV === "production" ? "/calculadora-presupuesto/" : "/",
+};

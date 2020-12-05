@@ -1,0 +1,33 @@
+{
+  "sourceMaterials" : {
+    "Lienzo" : {
+      "characteristics" : {
+        "color" : "Azul",
+        "quality" : "Baja"
+      },
+      "name": "Bolso",
+      "id" : "-MNZakS2Lri-LCY0DCSq",
+      "price" : {
+        "amount" : 100,
+        "measurementUnit" : "Metro"
+      }
+    }
+  },
+  "products" : {
+    "Bolso" : {
+      "characteristics" : {
+        "color" : "Azul",
+        "quality" : "Baja",
+        "Tamaño" : "Chico" 
+      },
+      "id" : "-MNZakS2Lri-LCY0DCSq",
+      "name": "Bolso",
+      "sourceMaterials" : {
+        "Lienzo": {
+          "amount": 100,
+          "measurementUnit": "Centimetro"
+        }
+      }
+    }
+  }
+}
