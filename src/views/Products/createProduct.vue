@@ -85,29 +85,13 @@
               : { color: 'green !important' },
           ]"
           @input="pushSourceMaterial()"
-          size="sm"
           v-model="howMuch"
           type="number"
           placeholder="Cantidad de Materia Prima"
         ></b-input>
-        <b-dropdown
-          style="margin: 0 20px"
-          text="Unidad de Medida"
-          variant="primary"
-        >
-          <b-dropdown-item @click="pushSourceMaterial('Metro')"
-            >Metro</b-dropdown-item
-          >
-          <b-dropdown-item @click="pushSourceMaterial('Centimetro')"
-            >Centímetro</b-dropdown-item
-          >
-          <b-dropdown-item @click="pushSourceMaterial('Unidad')"
-            >Unidad</b-dropdown-item
-          >
-        </b-dropdown>
       </span>
       <span
-        v-if="measurementUnit && nameProduct !== 'Nombre' && howMuch"
+        v-if="howMuch && nameProduct !== 'Nombre' && sourceMaterials"
         style="display:flex; justify-content: space-around;width:80vw;"
       >
         <h5
@@ -117,7 +101,8 @@
           {{
             `${sourceMaterial.name}  ${
               sourceMaterial.howMuch
-            } ${sourceMaterial.measurementUnit.toLowerCase()}${plural}`
+            } ${sourceMaterial.measurementUnit ||
+              unitOfSourceMaterial.toLowerCase()}${plural}`
           }}
           <b-icon
             style="cursor:pointer;"
@@ -165,23 +150,29 @@
         sourceMaterials: {},
         sourceMaterial: "Nombre",
         howMuch: undefined,
-        measurementUnit: undefined,
         sizes: ["Grande", "Mediano", "Pequeño"],
         size: undefined,
         colors: ["Blanco", "Azul", "Beige"],
         color: undefined,
         qualities: ["Alta", "Media", "Baja"],
         quality: undefined,
+        unitOfSourceMaterial: "No seleccionaste un nombre",
       };
     },
     validations: {
       nameProduct: {
         required,
       },
-      measurementUnit: {
+      howMuch: {
         required,
       },
-      howMuch: {
+      size: {
+        required,
+      },
+      color: {
+        required,
+      },
+      quality: {
         required,
       },
       sourceMaterials: {
@@ -193,12 +184,6 @@
     },
     beforeCreate() {
       this.$store.dispatch("setSourceMaterials");
-    },
-    computed: {
-      plural() {
-        let result = this.measurementUnit === "Unidad" ? "es" : "s";
-        return result;
-      },
     },
     created() {},
     methods: {
@@ -232,9 +217,6 @@
       pushSourceMaterial(newMeasurementUnit) {
         this.$v.howMuch.$touch;
         this.$v.sourceMaterial.$touch;
-        if (newMeasurementUnit) {
-          this.measurementUnit = newMeasurementUnit;
-        }
 
         if (
           !this.$v.sourceMaterial.$invalid &&
@@ -244,12 +226,33 @@
           this.$set(this.sourceMaterials, this.sourceMaterial, {
             name: this.sourceMaterial,
             howMuch: Number(this.howMuch),
-            measurementUnit: this.measurementUnit,
+            measurementUnit: this.unitOfSourceMaterial,
           });
         }
       },
       deleteSourceMaterial(name) {
         this.$delete(this.sourceMaterials, name);
+      },
+    },
+    watch: {
+      sourceMaterial: {
+        handler() {
+          db.ref(`sourceMaterials/${this.sourceMaterial}`).on(
+            "value",
+            (snapshot) => {
+              let snap = snapshot.val();
+              if (!snap) return false;
+              this.unitOfSourceMaterial = snap.price.measurementUnit;
+            }
+          );
+        },
+        immediate: true,
+      },
+    },
+    computed: {
+      plural() {
+        let result = this.unitOfSourceMaterial === "Unidad" ? "es" : "s";
+        return result;
       },
     },
   };

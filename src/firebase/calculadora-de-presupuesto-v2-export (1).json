@@ -1,0 +1,75 @@
+{
+  "clients": {
+    "Pepe": {
+      "address": "Calle 123",
+      "phoneNumber": 22345010,
+      "purchaseFrequency": "Alta",
+      "name": "Pepe"
+    }
+  },
+  "products": {
+    "Benicio": {
+      "characteristics": {
+        "color": "Blanco",
+        "quality": "Alta",
+        "size": "Pequeño"
+      },
+      "id": "-MNnQRLnrcCwGVsQ5CId",
+      "name": "Benicio",
+      "sourceMaterials": {
+        "Cinta PP": {
+          "howMuch": 1,
+          "measurementUnit": "Centimetro",
+          "name": "Cinta PP"
+        },
+        "Lienzo": {
+          "howMuch": 100,
+          "measurementUnit": "Metro",
+          "name": "Lienzo"
+        }
+      }
+    },
+    "dsad": {
+      "characteristics": {
+        "color": "Beige",
+        "quality": "Media",
+        "size": "Grande"
+      },
+      "id": "-MNnpKl5Wo8ZwQdMhOed",
+      "name": "dsad",
+      "sourceMaterials": {
+        "Cinta PP": {
+          "howMuch": 100,
+          "measurementUnit": "Metro",
+          "name": "Cinta PP"
+        }
+      }
+    }
+  },
+  "sourceMaterials": {
+    "Cinta PP": {
+      "characteristics": {
+        "color": "Azul",
+        "quality": "Alta"
+      },
+      "id": "-MNZfCk1Nrm_euS7C9yt",
+      "name": "Cinta PP",
+      "price": {
+        "amount": 5,
+        "measurementUnit": "Metro"
+      }
+    },
+    "Lienzo": {
+      "characteristics": {
+        "color": "Blanco",
+        "quality": "Media"
+      },
+      "id": "-MNilH8GpCksYn3RDqwY",
+      "name": "Lienzo",
+      "price": {
+        "amount": 199,
+        "measurementUnit": "Metro"
+      }
+    }
+  }
+}

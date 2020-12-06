@@ -1,17 +1,17 @@
 <template>
   <div>
-    <h1>Productos</h1>
+    <h1>Clientes</h1>
     <div
       style="display:flex; justify-content:space-evenly; align-items: center;"
     >
       <div class="container">
         <b-button
           variant="primary"
-          :key="product + ' ' + index"
-          v-for="(product, index) in products"
-          @click="seeProductInfo(product.name)"
+          :key="client + ' ' + index"
+          v-for="(client, index) in clients"
+          @click="seeClientInfo(client.name)"
         >
-          {{ product.name }}
+          {{ client.name }}
           <b-dropdown variant="primary">
             <template #button-content>
               <b-icon
@@ -21,7 +21,7 @@
               ></b-icon>
             </template>
             <b-dropdown-item-button
-              @click.stop="editProduct(product.name)"
+              @click.stop="editClient(client.name)"
               tabindex="-1"
               variant="info"
             >
@@ -31,7 +31,7 @@
             <b-dropdown-divider></b-dropdown-divider>
             <b-dropdown-item-button
               variant="danger"
-              @click.stop="deleteProduct(product.name)"
+              @click.stop="deleteClient(client.name)"
             >
               <b-icon icon="trash-fill" aria-hidden="true"></b-icon>
               Eliminar
@@ -39,7 +39,7 @@
           </b-dropdown>
         </b-button>
         <b-button
-          @click="$router.push('crear-producto')"
+          @click="$router.push('crear-cliente')"
           variant="outline-primary"
           @mouseover="hover = 'rgb(255, 255, 255)'"
           @mouseout="hover = 'rgb(0, 123, 255)'"
@@ -58,41 +58,41 @@
 <script>
   import { db } from "../../firebase/firebase.js";
   export default {
-    name: "products",
+    name: "clients",
     data() {
       return {
-        products: this.$store.state.products,
+        clients: this.$store.state.clients,
         hover: "rgb(0, 123, 255)",
       };
+    },
+    computed: {
+      newClients() {
+        return this.$store.state.clients;
+      },
+    },
+    watch: {
+      newClients(newItems) {
+        this.clients = newItems;
+      },
     },
     beforeCreate() {
       this.$store.dispatch("setProducts");
       this.$store.dispatch("setSourceMaterials");
       this.$store.dispatch("setClients");
     },
-    computed: {
-      newProducts() {
-        return this.$store.state.products;
-      },
-    },
-    watch: {
-      newProducts(newItems) {
-        this.products = newItems;
-      },
-    },
     methods: {
-      deleteProduct(product) {
-        db.ref("/products/" + product).remove();
+      deleteClient(client) {
+        db.ref(`/clients/${client}`).remove();
       },
-      editProduct(productName) {
-        this.$store.commit("changeName", productName);
-        this.$store.commit("changeEditStatus", true);
-        this.$router.push("ver-producto");
-      },
-      seeProductInfo(productName) {
-        this.$store.commit("changeName", productName);
-        this.$router.push("ver-producto");
+      seeClientInfo(clientName) {
+        this.$store.commit("changeName", clientName);
+        this.$router.push("ver-cliente");
         this.$store.commit("changeEditStatus", false);
+      },
+      editClient(clientName) {
+        this.$store.commit("changeName", clientName);
+        this.$store.commit("changeEditStatus", true);
+        this.$router.push("ver-cliente");
       },
     },
   };
@@ -118,7 +118,7 @@
   }
   h1 {
     text-align: center;
-    font-size: 1.2em;
+    font-size: 2.5em;
     padding-top: 20px;
   }
 </style>

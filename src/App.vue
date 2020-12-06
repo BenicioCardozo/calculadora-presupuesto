@@ -3,10 +3,13 @@
     <b-navbar toggleable type="dark" variant="dark">
       <span id="top">
         <b-nav-item href="#">
-          <router-link to="/">Pedidos</router-link>
+          <router-link to="/pedidos">Pedidos</router-link>
         </b-nav-item>
         <b-nav-item href="#">
-          <router-link to="/">Clientes</router-link>
+          <router-link to="/kits">Kits</router-link>
+        </b-nav-item>
+        <b-nav-item href="#">
+          <router-link to="/clientes">Clientes</router-link>
         </b-nav-item>
         <b-nav-item href="#">
           <router-link to="/productos">Productos</router-link>
@@ -26,10 +29,13 @@
       <b-collapse id="navbar-toggle-collapse" is-nav>
         <b-navbar-nav class="ml-auto">
           <b-nav-item href="#">
-            <router-link to="/">Pedidos</router-link>
+            <router-link to="/pedidos">Pedidos</router-link>
           </b-nav-item>
           <b-nav-item href="#">
-            <router-link to="/">Clientes</router-link>
+            <router-link to="/kits">Kits</router-link>
+          </b-nav-item>
+          <b-nav-item href="#">
+            <router-link to="/clientes">Clientes</router-link>
           </b-nav-item>
           <b-nav-item href="#">
             <router-link to="/productos">Productos</router-link>
@@ -40,7 +46,6 @@
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
-    <!--Header-->
     <router-view />
   </div>
 </template>

@@ -2,56 +2,49 @@
   <div>
     <div id="container">
       <h1>{{ this.$store.state.nameOfActualItem }}</h1>
-      <b-card-group columns style="margin: 0 5vh 0!important">
+      <b-card-group columns style="margin: 0 5vh 15vh!important">
         <b-card
-          header="Color"
+          header="Frecuencia"
           header-tag="h3"
           border-variant="info"
           align="center"
         >
           <b-card-text text-tag="h4" v-if="!this.$store.state.edit">{{
-            characteristics.color
+            characteristics.purchaseFrequency
           }}</b-card-text>
           <b-form-select
-            v-model="characteristics.color"
+            v-model="characteristics.purchaseFrequency"
             v-else
-            :options="colors"
+            :options="purchaseFrequencyOptions"
           ></b-form-select>
         </b-card>
         <b-card
-          header="Calidad"
+          header="Teléfono"
           header-tag="h3"
           border-variant="info"
           align="center"
         >
           <b-card-text text-tag="h4" v-if="!this.$store.state.edit">{{
-            characteristics.quality
+            `${characteristics.phoneNumber}`
           }}</b-card-text>
-          <b-form-select
-            v-model="characteristics.quality"
+          <b-input
+            v-model="characteristics.phoneNumber"
             v-else
-            :options="qualities"
-          ></b-form-select>
+            size="sm"
+          ></b-input>
         </b-card>
         <b-card
-          header="Tamaño"
+          header="Dirección"
           header-tag="h3"
           border-variant="info"
           align="center"
         >
           <b-card-text text-tag="h4" v-if="!this.$store.state.edit">{{
-            `${characteristics.size}`
+            `${characteristics.address}`
           }}</b-card-text>
-          <b-form-select
-            v-model="characteristics.size"
-            v-else
-            :options="sizes"
-          ></b-form-select>
+          <b-input v-model="characteristics.address" v-else size="sm"></b-input>
         </b-card>
       </b-card-group>
-      <h2 style="color:rgb(59, 116, 59)">
-        {{ `$ ${price.toLocaleString("es-AR")}` }}
-      </h2>
     </div>
   </div>
 </template>
@@ -64,37 +57,28 @@
       return {
         characteristics: undefined,
         price: undefined,
-        qualities: ["Alta", "Media", "Baja"],
-        colors: ["Beige", "Azul", "Blanco"],
-        sizes: ["Grande", "Mediano", "Pequeño"],
+        purchaseFrequencyOptions: ["Alta", "Media", "Baja"],
       };
     },
     created() {
-      var price = 0;
-      db.ref(`products/${this.$store.state.nameOfActualItem}`).on(
+      db.ref(`clients/${this.$store.state.nameOfActualItem}`).on(
         "value",
         (snapshot) => {
-          this.characteristics = snapshot.val().characteristics;
-          for (const item in snapshot.val().sourceMaterials) {
-            const element = snapshot.val().sourceMaterials[item];
-            db.ref(`sourceMaterials/${element.name}`).on(
-              "value",
-              (snapshot) => {
-                let sourceMaterialPrice = snapshot.val().price.amount;
-                price += element.howMuch * Number(sourceMaterialPrice);
-              }
-            );
-          }
+          this.characteristics = {
+            address: snapshot.val().address,
+            phoneNumber: snapshot.val().phoneNumber,
+            name: snapshot.val().name,
+            purchaseFrequency: snapshot.val().purchaseFrequency,
+          };
         }
       );
-      this.price = price;
     },
     watch: {
       characteristics: {
         handler(newCharacteristics) {
-          db.ref(
-            `/products/${this.$store.state.nameOfActualItem}/characteristics`
-          ).set(newCharacteristics);
+          db.ref(`/clients/${this.$store.state.nameOfActualItem}/`).set(
+            newCharacteristics
+          );
         },
         deep: true,
       },

@@ -27,9 +27,6 @@
         <b-dropdown-item @click="price.measurementUnit = 'Metro'"
           >Metro</b-dropdown-item
         >
-        <b-dropdown-item @click="price.measurementUnit = 'Centimetro'"
-          >Centímetro</b-dropdown-item
-        >
         <b-dropdown-item @click="price.measurementUnit = 'Unidad'"
           >Unidad</b-dropdown-item
         >
