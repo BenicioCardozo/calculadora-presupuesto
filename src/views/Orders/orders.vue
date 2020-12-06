@@ -26,7 +26,7 @@
               @click.stop="deleteOrder(order)"
             >
               <b-icon icon="trash-fill" aria-hidden="true"></b-icon>
-              Eliminar
+              Entregado
             </b-dropdown-item-button>
           </b-dropdown>
         </b-button>
