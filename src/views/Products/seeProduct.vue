@@ -63,31 +63,24 @@
     data() {
       return {
         characteristics: undefined,
-        price: undefined,
+        price: 0,
         qualities: ["Alta", "Media", "Baja"],
         colors: ["Beige", "Azul", "Blanco"],
         sizes: ["Grande", "Mediano", "Pequeño"],
       };
     },
-    created() {
-      var price = 0;
+    async created() {
       db.ref(`products/${this.$store.state.nameOfActualItem}`).on(
         "value",
         (snapshot) => {
           this.characteristics = snapshot.val().characteristics;
-          for (const item in snapshot.val().sourceMaterials) {
-            const element = snapshot.val().sourceMaterials[item];
-            db.ref(`sourceMaterials/${element.name}`).on(
-              "value",
-              (snapshot) => {
-                let sourceMaterialPrice = snapshot.val().price.amount;
-                price += element.howMuch * Number(sourceMaterialPrice);
-              }
-            );
-          }
         }
       );
-      this.price = price;
+      let setPrice = await this.$store.commit(
+        "setProductPrice",
+        this.$store.state.nameOfActualItem
+      );
+      this.price = this.$store.state.productPrice;
     },
     watch: {
       characteristics: {

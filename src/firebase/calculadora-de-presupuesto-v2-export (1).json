@@ -1,10 +1,34 @@
 {
+  "orders": [
+    {
+      "deliveryTime": "17 de Mayo",
+      "client": "Pepe",
+      "kit": {
+        "Ket": {
+          "name": "Ket",
+          "quantity": 2
+        }
+      },
+      "importance": "Baja"
+    }
+  ],
   "clients": {
     "Pepe": {
       "address": "Calle 123",
+      "name": "Pepe",
       "phoneNumber": 22345010,
-      "purchaseFrequency": "Alta",
-      "name": "Pepe"
+      "purchaseFrequency": "Alta"
+    }
+  },
+  "kits": {
+    "asdas": {
+      "name": "asdas",
+      "products": {
+        "Benicio": {
+          "name": "Benicio",
+          "quantity": 2
+        }
+      }
     }
   },
   "products": {

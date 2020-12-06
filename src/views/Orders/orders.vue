@@ -1,17 +1,18 @@
 <template>
   <div>
-    <h1>Kits</h1>
+    <h1>Pedidos</h1>
     <div
       style="display:flex; justify-content:space-evenly; align-items: center;"
     >
       <div class="container">
         <b-button
           variant="primary"
-          :key="kit + ' ' + index"
-          v-for="(kit, index) in kits"
-          @click="seeKitInfo(kit.name)"
+          :key="order + ' ' + index"
+          v-for="(order, index) in orders"
+          @click="seeOrderInfo(order)"
         >
-          {{ kit.name }}
+          <b-icon icon="clock-fill"></b-icon>
+          {{ order.deliveryTime }}
           <b-dropdown variant="primary">
             <template #button-content>
               <b-icon
@@ -22,7 +23,7 @@
             </template>
             <b-dropdown-item-button
               variant="danger"
-              @click.stop="deleteKit(kit.name)"
+              @click.stop="deleteOrder(order)"
             >
               <b-icon icon="trash-fill" aria-hidden="true"></b-icon>
               Eliminar
@@ -30,7 +31,7 @@
           </b-dropdown>
         </b-button>
         <b-button
-          @click="$router.push('crear-kit')"
+          @click="$router.push('crear-pedido')"
           variant="outline-primary"
           @mouseover="hover = 'rgb(255, 255, 255)'"
           @mouseout="hover = 'rgb(0, 123, 255)'"
@@ -49,39 +50,39 @@
 <script>
   import { db } from "../../firebase/firebase.js";
   export default {
-    name: "kits",
+    name: "orders",
     data() {
       return {
-        kits: this.$store.state.kits,
+        orders: this.$store.state.orders,
         hover: "rgb(0, 123, 255)",
       };
     },
     beforeCreate() {
-      this.$store.dispatch("setKits");
+      this.$store.dispatch("setOrders");
     },
     computed: {
-      newKits() {
-        return this.$store.state.kits;
+      newOrders() {
+        return this.$store.state.orders;
       },
     },
     watch: {
-      newKits(newItems) {
-        this.kits = newItems;
+      newOrders(newItems) {
+        this.orders = newItems;
       },
     },
     methods: {
-      deleteKit(kit) {
-        db.ref("/kits/" + kit).remove();
+      deleteOrder(order) {
+        db.ref("/orders/" + order.deliveryTime).remove();
       },
-      editKit(kit) {
-        this.$store.commit("changeName", kit);
+      editOrder(order) {
+        this.$store.commit("changeName", order.deliveryTime);
         this.$store.commit("changeEditStatus", true);
-        this.$router.push("ver-kit");
+        this.$router.push("ver-pedido");
       },
-      seeKitInfo(kit) {
-        this.$store.commit("changeName", kit);
-        this.$router.push("ver-kit");
+      seeOrderInfo(order) {
+        this.$store.commit("changeName", order.deliveryTime);
         this.$store.commit("changeEditStatus", false);
+        this.$router.push("ver-pedido");
       },
     },
   };

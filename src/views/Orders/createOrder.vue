@@ -1,55 +1,68 @@
 <template>
   <form @submit.prevent="sendData()" novalidate>
-    <div id="container" v-if="this.$store.state.products !== undefined">
+    <div id="container" v-if="this.$store.state.kits !== undefined">
       <h2>Crear</h2>
-      <b-input
-        @input="$v.nameKit.$touch"
-        :style="[
-          $v.nameKit.$error
-            ? { border: '2px solid rgb(255, 36, 36)' }
-            : { color: 'green' },
-        ]"
-        type="text"
-        size="sm"
-        placeholder="Nombre"
-        v-model="nameKit"
-      ></b-input>
-      <h4 style="font-weight: 500;">Productos</h4>
-      <b-form-select size="sm" ref="sourceMaterialSelector" v-model="product">
-        <b-form-select-option selected disabled hidden value="Nombre">
-          Nombre
+      <b-form-select size="sm" v-model="client">
+        <b-form-select-option selected disabled hidden value="Cliente">
+          Nombre del Cliente
         </b-form-select-option>
         <b-form-select-option
-          :value="product.name"
-          v-bind:key="product + ' ' + index"
-          v-for="(product, index) in this.$store.state.products"
+          :value="client.name"
+          v-bind:key="client + ' ' + index"
+          v-for="(client, index) in this.$store.state.clients"
         >
-          {{ product.name }}
+          {{ client.name }}
+        </b-form-select-option>
+      </b-form-select>
+      <b-form-select size="sm" v-model="importance">
+        <b-form-select-option selected disabled hidden value="Importancia">
+          Importancia
+        </b-form-select-option>
+        <b-form-select-option
+          :value="opt"
+          v-bind:key="opt + ' ' + index"
+          v-for="(opt, index) in importanceOpt"
+        >
+          {{ opt }}
+        </b-form-select-option>
+      </b-form-select>
+      <b-form-datepicker
+        style="width:80vw;"
+        v-model="deliveryTime"
+        size="sm"
+      ></b-form-datepicker>
+      <h4>Kits que Lleva</h4>
+      <b-form-select size="sm" v-model="kit">
+        <b-form-select-option selected disabled hidden value="Kit">
+          Nombre del kit
+        </b-form-select-option>
+        <b-form-select-option
+          :value="kit.name"
+          v-bind:key="kit + ' ' + index"
+          v-for="(kit, index) in this.$store.state.kits"
+        >
+          {{ kit.name }}
         </b-form-select-option>
       </b-form-select>
       <b-input
-        @input="pushProduct()"
-        :style="[
-          $v.quantity.$error
-            ? { border: '2px solid rgb(255, 36, 36)' }
-            : { color: 'green' },
-        ]"
+        placeholder="Cantidad del Kit"
         type="number"
         size="sm"
-        placeholder="Cantidad"
         v-model="quantity"
-      ></b-input>
+        @input="pushKit()"
+      >
+      </b-input>
       <span
-        v-if="quantity && product !== 'Nombre'"
+        v-if="quantity && kit != 'kit'"
         style="display:flex; justify-content: space-around;width:80vw;"
       >
-        <h5 :key="product + ' ' + index" v-for="(product, index) in products">
-          {{ `${product.name}  ${product.quantity} ` }}
+        <h5 :key="kit + ' ' + index" v-for="(kit, index) in kits">
+          {{ `${kit.name}  ${kit.quantity} ` }}
           <b-icon
             style="cursor:pointer;"
             icon="trash"
             scale="1.1"
-            @click.stop="deleteProduct(product.name)"
+            @click.stop="deleteKit(kit.name)"
           >
           </b-icon>
         </h5>
@@ -60,7 +73,7 @@
         variant="success"
         type="submit"
         :disabled="$v.$invalid === true"
-        >Agregar Kit</b-button
+        >Agregar Órden</b-button
       >
     </div>
     <span v-else>
@@ -86,18 +99,29 @@
     name: "create-product",
     data() {
       return {
-        nameKit: undefined,
-        submitStatus: null,
-        products: {},
-        product: "Nombre",
+        client: "Cliente",
+        clientsOpt: this.$store.state.clients,
+        kit: "Kit",
+        kits: {},
         quantity: undefined,
+        kitsOpt: this.$store.state.kits,
+        importance: "Importancia",
+        importanceOpt: ["Alta", "Media", "Baja"],
+        deliveryTime: undefined,
+        submitStatus: null,
       };
     },
     validations: {
-      nameKit: {
+      client: {
         required,
       },
-      product: {
+      deliveryTime: {
+        required,
+      },
+      importance: {
+        required,
+      },
+      kit: {
         required,
       },
       quantity: {
@@ -105,7 +129,8 @@
       },
     },
     beforeCreate() {
-      this.$store.dispatch("setProducts");
+      this.$store.dispatch("setKits");
+      this.$store.dispatch("setClients");
     },
     created() {},
     methods: {
@@ -117,32 +142,35 @@
           this.submitStatus = "OK";
           var newKey = db
             .ref()
-            .child("products")
+            .child("orders")
             .push().key;
-          let kitData = {
-            name: this.nameKit,
-            products: this.products,
+          let orderData = {
+            deliveryTime: this.deliveryTime,
+            client: this.client,
+            kit: this.kits,
+            importance: this.importance,
+            id: newKey,
           };
-          console.dir(kitData);
+
           let updates = {};
-          updates["/kits/" + this.nameKit] = kitData;
+          updates["/orders/" + this.deliveryTime] = orderData;
           db.ref().update(updates);
-          this.$router.push("kits");
+          this.$router.push("pedidos");
         }
       },
-      pushProduct() {
+      pushKit() {
         this.$v.quantity.$touch;
-        this.$v.product.$touch;
+        this.$v.kit.$touch;
 
-        if (!this.$v.quantity.$invalid && this.product !== "Nombre") {
-          this.$set(this.products, this.product, {
-            name: this.product,
-            quantity: Number(this.quantity),
+        if (!this.$v.quantity.$invalid && this.kit !== "Kit") {
+          this.$set(this.kits, this.kit, {
+            name: this.kit,
+            quantity: this.quantity,
           });
         }
       },
-      deleteProduct(name) {
-        this.$delete(this.products, name);
+      deleteKit(name) {
+        this.$delete(this.kits, name);
       },
     },
     watch: {},

@@ -8,10 +8,66 @@ export default new Vuex.Store({
     products: [],
     sourceMaterials: [],
     clients: [],
+    kits: [],
     nameOfActualItem: undefined,
     edit: false,
+    productPrice: undefined,
+    orders: undefined,
   },
   mutations: {
+    setOrders: (state) => {
+      let orders = [];
+
+      db.ref("/orders").on("value", (snapshot) => {
+        orders = [];
+        if (snapshot.val()) {
+          for (const key in snapshot.val()) {
+            const order = snapshot.val()[key];
+            orders.push({
+              deliveryTime: order.deliveryTime,
+              client: order.client,
+              kit: order.kit,
+              importance: order.importance,
+            });
+            state.orders = orders;
+          }
+        } else {
+          state.orders = undefined;
+        }
+      });
+    },
+    setProductPrice: (state, name) => {
+      var price = 0;
+      db.ref(`products/${name}`).on("value", (snapshot) => {
+        for (const item in snapshot.val().sourceMaterials) {
+          const element = snapshot.val().sourceMaterials[item];
+          db.ref(`sourceMaterials/${element.name}`).on("value", (snapshot) => {
+            let sourceMaterialPrice = snapshot.val().price.amount;
+            price += element.howMuch * Number(sourceMaterialPrice);
+          });
+        }
+      });
+      state.productPrice = price;
+    },
+    setKits: (state) => {
+      let kits = [];
+
+      db.ref("/kits").on("value", (snapshot) => {
+        kits = [];
+        if (snapshot.val()) {
+          for (const key in snapshot.val()) {
+            const kit = snapshot.val()[key];
+            kits.push({
+              name: kit.name,
+              products: kit.products,
+            });
+            state.kits = kits;
+          }
+        } else {
+          state.kits = undefined;
+        }
+      });
+    },
     setClients: (state) => {
       let clients = [];
 
@@ -91,6 +147,12 @@ export default new Vuex.Store({
     },
     setClients: (state) => {
       state.commit("setClients");
+    },
+    setKits: (state) => {
+      state.commit("setKits");
+    },
+    setOrders: (state) => {
+      state.commit("setOrders");
     },
   },
 });

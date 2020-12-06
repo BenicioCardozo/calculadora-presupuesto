@@ -98,7 +98,7 @@
   };
 </script>
 
-<style>
+<style scoped>
   .container {
     margin: 20px;
     display: flex;
@@ -118,7 +118,6 @@
   }
   h1 {
     text-align: center;
-    font-size: 1.2em;
     padding-top: 20px;
   }
 </style>

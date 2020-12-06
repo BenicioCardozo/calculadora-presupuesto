@@ -12,6 +12,9 @@ import seeClient from "../views/Clients/seeClient.vue";
 import kits from "../views/kits/kits.vue";
 import createKit from "../views/kits/createKit.vue";
 import seeKit from "../views/kits/seeKit.vue";
+import orders from "../views/Orders/orders.vue";
+import createOrder from "../views/Orders/createOrder.vue";
+import seeOrder from "../views/Orders/seeOrder.vue";
 
 Vue.use(VueRouter);
 
@@ -68,6 +71,18 @@ const routes = [
   {
     path: "/kits",
     component: kits,
+  },
+  {
+    path: "/pedidos",
+    component: orders,
+  },
+  {
+    path: "/crear-pedido",
+    component: createOrder,
+  },
+  {
+    path: "/ver-pedido",
+    component: seeOrder,
   },
 ];
 
