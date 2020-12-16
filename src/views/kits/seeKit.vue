@@ -9,7 +9,7 @@
         {{
           `${product.name} | Cantidad ${product.quantity.toLocaleString(
             "es-AR"
-          )} | Precio $${product.price.toLocaleString("es-AR")}`
+          )} | Precio Total $${product.price.toLocaleString("es-AR")}`
         }}
       </h3>
       <h2 style="color:rgb(59, 116, 59)">

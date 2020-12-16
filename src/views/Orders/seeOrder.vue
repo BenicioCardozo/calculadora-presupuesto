@@ -23,13 +23,15 @@
         deliveryTime: undefined,
         importance: undefined,
         client: undefined,
+        products: undefined,
       };
     },
     created() {
       db.ref(`orders/${this.$store.state.nameOfActualItem}`).on(
         "value",
         (snapshot) => {
-          this.kits = snapshot.val().kit;
+          this.kits = snapshot.val().kits;
+          this.products = snapshot.val().products;
           this.deliveryTime = snapshot.val().deliveryTime;
           this.importance = snapshot.val().importance;
           this.client = snapshot.val().client;
@@ -37,14 +39,14 @@
       );
       var products = undefined;
       var price = 0;
+      var priceProducts = 0;
       for (const key in this.kits) {
         const element = this.kits[key].name;
-        console.log(element);
         db.ref(`kits/${element}`).on("value", (snapshot) => {
-          products = snapshot.val().products;
+          products = snapshot.val().products; //Products of this kit
           console.log(products);
         });
-        console.log(products);
+
         for (const key in products) {
           const element = products[key].name;
           console.log(element);
@@ -53,6 +55,12 @@
             this.$store.state.productPrice * Number(products[key].quantity);
         }
         this.price = Number(this.kits[key].quantity) * Number(price);
+      }
+      for (const key in this.products) {
+        const element = this.products[key].name;
+        this.$store.commit("setProductPrice", element);
+        this.price +=
+          this.$store.state.productPrice * Number(this.products[key].quantity);
       }
     },
   };

@@ -10,7 +10,6 @@ export default new Vuex.Store({
     clients: [],
     kits: [],
     nameOfActualItem: undefined,
-    edit: false,
     productPrice: undefined,
     orders: undefined,
   },
@@ -114,9 +113,6 @@ export default new Vuex.Store({
     changeName(state, newName) {
       state.nameOfActualItem = newName;
     },
-    changeEditStatus: (state, newStatus) => {
-      state.edit = newStatus;
-    },
     setSourceMaterials: (state) => {
       let sourceMaterials = [];
 
@@ -129,6 +125,7 @@ export default new Vuex.Store({
               name: sourceMaterial.name,
               characteristics: sourceMaterial.characteristics,
               price: sourceMaterial.price,
+              id: sourceMaterial.id.substring(1),
             });
             state.sourceMaterials = sourceMaterials;
           }

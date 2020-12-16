@@ -1,5 +1,6 @@
 <template>
   <form @submit.prevent="sendData()" novalidate>
+    <!-- Vars Kit || Kits sometimes refer to both, products and kits -->
     <div id="container" v-if="this.$store.state.kits !== undefined">
       <h2>Crear</h2>
       <b-form-select size="sm" v-model="client">
@@ -30,33 +31,55 @@
         style="width:80vw;"
         v-model="deliveryTime"
         size="sm"
+        :date-format-options="{ month: 'numeric', day: 'numeric' }"
+        placeholder="Fecha de Entrega"
+        locale="es"
       ></b-form-datepicker>
-      <h4>Kits que Lleva</h4>
+      <span id="sub-title">
+        <h4>{{ subtitle }} que Lleva</h4>
+        <b-button @click="seeKits = !seeKits" size="sm" variant="outline-info"
+          >¿Lleva {{ seeKits ? "Productos sueltos" : "Kits" }}?</b-button
+        >
+      </span>
       <b-form-select size="sm" v-model="kit">
         <b-form-select-option selected disabled hidden value="Kit">
-          Nombre del kit
+          Nombre del {{ subtitle.slice(0, -1) }}
         </b-form-select-option>
         <b-form-select-option
+          v-show="subtitle === 'Kits'"
           :value="kit.name"
-          v-bind:key="kit + ' ' + index"
+          v-bind:key="kit.name + ' ' + index"
           v-for="(kit, index) in this.$store.state.kits"
         >
           {{ kit.name }}
         </b-form-select-option>
+        <b-form-select-option
+          v-show="subtitle === 'Productos'"
+          :value="product.name"
+          v-bind:key="product.name + ' ' + index"
+          v-for="(product, index) in this.$store.state.products"
+        >
+          {{ product.name }}
+        </b-form-select-option>
       </b-form-select>
       <b-input
-        placeholder="Cantidad del Kit"
+        :placeholder="`Cantidad del ${subtitle.slice(0, -1)}`"
         type="number"
         size="sm"
         v-model="quantity"
-        @input="pushKit()"
       >
       </b-input>
+      <b-button
+        :disabled="!quantity || kit === 'Kit'"
+        @click="pushKit()"
+        variant="secondary"
+        >Agregar {{ subtitle.slice(0, -1) }}</b-button
+      >
       <span
-        v-if="quantity && kit != 'kit'"
+        v-if="Object.keys(kits).length > 0"
         style="display:flex; justify-content: space-around;width:80vw;"
       >
-        <h5 :key="kit + ' ' + index" v-for="(kit, index) in kits">
+        <h5 :key="kit + ' ' + index" v-for="(kit, index) in kitsAndProducts">
           {{ `${kit.name}  ${kit.quantity} ` }}
           <b-icon
             style="cursor:pointer;"
@@ -78,13 +101,13 @@
     </div>
     <span v-else>
       <h2 style="text-align: center;">
-        Todavía no tenés Productos Creado
+        Todavía no tenés Kits Creados
         <router-link
           style="color: rgb(10, 92, 173); text-align:center; margin-top: 20px;"
-          to="/crear-producto"
+          to="/crear-kit"
         >
           <h2 style="font-size: 4rem;">
-            ¡Crealas!
+            ¡Crealos!
           </h2>
         </router-link>
       </h2>
@@ -100,16 +123,25 @@
     data() {
       return {
         client: "Cliente",
-        clientsOpt: this.$store.state.clients,
         kit: "Kit",
         kits: {},
+        products: {},
         quantity: undefined,
-        kitsOpt: this.$store.state.kits,
         importance: "Importancia",
         importanceOpt: ["Alta", "Media", "Baja"],
         deliveryTime: undefined,
         submitStatus: null,
+        seeKits: true,
       };
+    },
+    computed: {
+      subtitle() {
+        return this.seeKits ? "Kits" : "Productos";
+      },
+      kitsAndProducts() {
+        let result = { ...this.kits, ...this.products };
+        return result;
+      },
     },
     validations: {
       client: {
@@ -121,22 +153,17 @@
       importance: {
         required,
       },
-      kit: {
-        required,
-      },
-      quantity: {
-        required,
-      },
     },
     beforeCreate() {
       this.$store.dispatch("setKits");
       this.$store.dispatch("setClients");
+      this.$store.dispatch("setProducts");
     },
     created() {},
     methods: {
       sendData() {
         this.$v.$touch();
-        if (this.$v.$invalid) {
+        if (this.$v.$invalid && Object.keys(kits).length > 0) {
           this.submitStatus = "ERROR";
         } else {
           this.submitStatus = "OK";
@@ -147,7 +174,8 @@
           let orderData = {
             deliveryTime: this.deliveryTime,
             client: this.client,
-            kit: this.kits,
+            kits: this.kits,
+            products: this.products,
             importance: this.importance,
             id: newKey,
           };
@@ -159,15 +187,20 @@
         }
       },
       pushKit() {
-        this.$v.quantity.$touch;
-        this.$v.kit.$touch;
-
-        if (!this.$v.quantity.$invalid && this.kit !== "Kit") {
+        // this.$v.quantity.$touch;
+        // this.$v.kit.$touch;
+        if (this.seeKits) {
           this.$set(this.kits, this.kit, {
             name: this.kit,
             quantity: this.quantity,
           });
+        } else {
+          this.$set(this.products, this.kit, {
+            name: this.kit,
+            quantity: this.quantity,
+          });
         }
+        (this.kit = "Kit"), (this.quantity = "");
       },
       deleteKit(name) {
         this.$delete(this.kits, name);
@@ -232,5 +265,15 @@
   }
   select {
     width: 80vw;
+  }
+  #sub-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 100vw;
+  }
+  #sub-title > h4 {
+    padding: 2vh;
   }
 </style>

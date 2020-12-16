@@ -4,8 +4,14 @@
 
     <h2>Crear</h2>
     <b-input-group class="mb-3" prepend="Nombre">
-      <b-form-select :options="sourceMaterialsNames" v-model="name">
+      <b-form-input v-model="name"> </b-form-input>
+    </b-input-group>
+    <b-input-group class="mb-3" prepend="Tipo">
+      <b-form-select :options="sourceMaterialsNames" v-model="type">
       </b-form-select>
+    </b-input-group>
+    <b-input-group class="mb-3" prepend="Proveedor">
+      <b-form-input v-model="supplier"> </b-form-input>
     </b-input-group>
     <b-input-group class="mb-3" prepend="Color">
       <b-form-select v-model="color" :options="colors"> </b-form-select>
@@ -13,7 +19,7 @@
     <b-input-group class="mb-3" prepend="Calidad">
       <b-form-select v-model="quality" :options="qualities"> </b-form-select>
     </b-input-group>
-    <b-input-group>
+    <b-input-group prepend="$">
       <b-form-input
         v-model.number="price.amount"
         placeholder="Precio"
@@ -53,6 +59,8 @@
         name: null,
         color: null,
         quality: null,
+        type: null,
+        supplier: null,
         price: {
           amount: undefined,
           measurementUnit: undefined,
@@ -97,6 +105,8 @@
           characteristics: {
             color: this.color,
             quality: this.quality,
+            type: this.type,
+            supplier: this.supplier,
           },
           id: newKey,
           price: this.price,
