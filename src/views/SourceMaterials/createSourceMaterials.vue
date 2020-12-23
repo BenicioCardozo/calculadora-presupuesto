@@ -75,6 +75,7 @@
           "Bagún",
           "Cristal",
           "Deslizadores",
+          "Gabardina",
         ],
         qualities: ["Alta", "Media", "Baja"],
         colors: ["Beige", "Azul", "Blanco"],

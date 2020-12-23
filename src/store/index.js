@@ -10,7 +10,6 @@ export default new Vuex.Store({
     clients: [],
     kits: [],
     nameOfActualItem: undefined,
-    productPrice: undefined,
     orders: undefined,
   },
   mutations: {
@@ -34,19 +33,6 @@ export default new Vuex.Store({
           state.orders = undefined;
         }
       });
-    },
-    setProductPrice: (state, name) => {
-      var price = 0;
-      db.ref(`products/${name}`).on("value", (snapshot) => {
-        for (const item in snapshot.val().sourceMaterials) {
-          const element = snapshot.val().sourceMaterials[item];
-          db.ref(`sourceMaterials/${element.name}`).on("value", (snapshot) => {
-            let sourceMaterialPrice = snapshot.val().price.amount;
-            price += element.howMuch * Number(sourceMaterialPrice);
-          });
-        }
-      });
-      state.productPrice = price;
     },
     setKits: (state) => {
       let kits = [];
@@ -101,6 +87,7 @@ export default new Vuex.Store({
             products.push({
               name: product.name,
               characteristics: product.characteristics,
+              id: product.id,
               sourceMaterials: product.sourceMaterials,
             });
             state.products = products;
@@ -136,6 +123,50 @@ export default new Vuex.Store({
     },
   },
   actions: {
+    setProductPrice: async (context, name) => {
+      let sourceMaterialsQuery = await db
+        .ref(`products/${name}/sourceMaterials`)
+        .once("value");
+
+      let sourceMaterials = Object.values(sourceMaterialsQuery.val()).map(
+        (el) => {
+          return {
+            [el.name]: el.howMuch,
+          };
+        }
+      );
+
+      let sourceMaterialsPrices = sourceMaterials.map(async (el) => {
+        let nameOfEl = Object.keys(el)[0];
+        let amount = await db
+          .ref(`sourceMaterials/${nameOfEl}/price/amount`)
+          .once("value")
+          .then((res) => res.val());
+
+        return {
+          [nameOfEl]: amount,
+        };
+      });
+
+      let sourceMaterialsPricesDecapsulate = await Promise.all(
+        sourceMaterialsPrices.map(async (parameter) => {
+          const result = await parameter;
+          return result;
+        })
+      );
+
+      //
+      let result = sourceMaterials
+        .map((el, i) => {
+          return (
+            Number(Object.values(el)[0]) *
+            Number(Object.values(sourceMaterialsPricesDecapsulate[i])[0])
+          );
+        })
+        .reduce((a, b) => a + b, 0);
+
+      return result;
+    },
     setProducts: (state) => {
       state.commit("setProducts");
     },

@@ -36,6 +36,18 @@
         </b-input-group>
       </b-card>
     </b-card-group>
+    <b-card-group deck>
+      <b-card
+        header="Proveedor"
+        header-tag="h3"
+        border-variant="info"
+        align="center"
+      >
+        <b-input-group>
+          <b-input v-model="characteristics.supplier" type="text"></b-input>
+        </b-input-group>
+      </b-card>
+    </b-card-group>
   </div>
 </template>
 
@@ -53,6 +65,7 @@
         characteristics: {
           color: undefined,
           quality: undefined,
+          supplier: undefined,
         },
       };
     },
@@ -91,15 +104,15 @@
 
 <style scoped>
   /* div > h3 {
-		font-weight: 700;
-		font-size: 2.4em;
-	}
-	div > h3 {
-		font-size: 2em;
-	} */
+  	font-weight: 700;
+  	font-size: 2.4em;
+  }
+  div > h3 {
+  	font-size: 2em;
+  } */
   @media screen and (min-width: 576px) {
     .card-columns {
-      margin: 20vh 5vh 0 !important;
+      margin: 10vh 5vh 10vh !important;
     }
   }
 
@@ -112,7 +125,11 @@
     font-weight: 500;
     width: 100%;
   }
-  #container {
+  #container * {
     text-align: center;
+    max-width: 100%;
+  }
+  .card-deck {
+    margin: auto;
   }
 </style>

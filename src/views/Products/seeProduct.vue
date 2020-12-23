@@ -2,6 +2,26 @@
   <div>
     <div id="container">
       <h1>{{ this.$store.state.nameOfActualItem }}</h1>
+      <b-card
+        header="Materias Primas"
+        header-tag="h3"
+        border-variant="info"
+        align="center"
+        style="margin: 0 5vh 0!important"
+      >
+        <b-input-group
+          :prepend="`Cantidad de ${sourceMaterial.name}`"
+          :key="sourceMaterial + ' ' + index"
+          v-for="(sourceMaterial, index) in sourceMaterials"
+        >
+          <b-input
+            type="number"
+            :value="sourceMaterials[sourceMaterial.name].howMuch"
+            @input="updateAmount(sourceMaterial.name, $event)"
+          >
+          </b-input>
+        </b-input-group>
+      </b-card>
       <b-card-group columns style="margin: 0 5vh 0!important">
         <b-card
           header="Color"
@@ -9,12 +29,8 @@
           border-variant="info"
           align="center"
         >
-          <b-card-text text-tag="h4" v-if="!this.$store.state.edit">{{
-            characteristics.color
-          }}</b-card-text>
           <b-form-select
             v-model="characteristics.color"
-            v-else
             :options="colors"
           ></b-form-select>
         </b-card>
@@ -24,12 +40,8 @@
           border-variant="info"
           align="center"
         >
-          <b-card-text text-tag="h4" v-if="!this.$store.state.edit">{{
-            characteristics.quality
-          }}</b-card-text>
           <b-form-select
             v-model="characteristics.quality"
-            v-else
             :options="qualities"
           ></b-form-select>
         </b-card>
@@ -39,19 +51,12 @@
           border-variant="info"
           align="center"
         >
-          <b-card-text text-tag="h4" v-if="!this.$store.state.edit">{{
-            `${characteristics.size}`
-          }}</b-card-text>
           <b-form-select
             v-model="characteristics.size"
-            v-else
             :options="sizes"
           ></b-form-select>
         </b-card>
       </b-card-group>
-      <h2 style="color:rgb(59, 116, 59)">
-        {{ `$ ${price.toLocaleString("es-AR")}` }}
-      </h2>
     </div>
   </div>
 </template>
@@ -64,23 +69,27 @@
       return {
         characteristics: undefined,
         price: 0,
+        sourceMaterials: undefined,
         qualities: ["Alta", "Media", "Baja"],
         colors: ["Beige", "Azul", "Blanco"],
         sizes: ["Grande", "Mediano", "Pequeño"],
       };
     },
-    async created() {
+    methods: {
+      updateAmount(name, newAmount) {
+        db.ref(
+          `products/${this.$store.state.nameOfActualItem}/sourceMaterials/${name}/howMuch`
+        ).set(Number(newAmount));
+      },
+    },
+    created() {
       db.ref(`products/${this.$store.state.nameOfActualItem}`).on(
         "value",
         (snapshot) => {
           this.characteristics = snapshot.val().characteristics;
+          this.sourceMaterials = snapshot.val().sourceMaterials;
         }
       );
-      let setPrice = await this.$store.commit(
-        "setProductPrice",
-        this.$store.state.nameOfActualItem
-      );
-      this.price = this.$store.state.productPrice;
     },
     watch: {
       characteristics: {
@@ -96,12 +105,9 @@
 </script>
 
 <style scoped>
-  /* @media screen and (min-width: 576px) {
-    .card-columns {
-      margin: 20vh 5vh 0 !important;
-    }
-  } */
-
+  .input-group {
+    margin: 2vh;
+  }
   input {
     text-align: center;
     font-weight: 500;
@@ -112,5 +118,8 @@
     justify-content: space-between;
     min-height: 80vh;
     text-align: center;
+  }
+  .source-materials-card {
+    max-width: 100%;
   }
 </style>

@@ -58,11 +58,6 @@
       <h4 style="font-weight: 500;">Materias Primas que Lleva</h4>
       <b-form-select
         size="sm"
-        :style="[
-          this.$v.sourceMaterial.$invalid && this.howMuch != undefined
-            ? { border: '2px solid rgb(255, 36, 36)' }
-            : { border: '1px solid rgb(206, 212, 218)' },
-        ]"
         ref="sourceMaterialSelector"
         v-model="sourceMaterial"
       >
@@ -79,19 +74,13 @@
       </b-form-select>
       <span id="quantity-and-dropdown">
         <b-input
-          :style="[
-            $v.howMuch.$error
-              ? { border: '2px solid rgb(255, 36, 36)' }
-              : { color: 'green !important' },
-          ]"
-          @input="pushSourceMaterial()"
           v-model="howMuch"
           type="number"
           placeholder="Cantidad de Materia Prima"
         ></b-input>
       </span>
       <span
-        v-if="howMuch && nameProduct !== 'Nombre' && sourceMaterials"
+        v-if="Object.keys(sourceMaterials).length !== 0"
         style="display:flex; justify-content: space-around;width:80vw;"
       >
         <h5
@@ -102,7 +91,7 @@
             `${sourceMaterial.name}  ${
               sourceMaterial.howMuch
             } ${sourceMaterial.measurementUnit ||
-              unitOfSourceMaterial.toLowerCase()}${plural}`
+              unitOfSourceMaterial.toLowerCase()}${plural(sourceMaterial)}`
           }}
           <b-icon
             style="cursor:pointer;"
@@ -114,11 +103,21 @@
         </h5>
       </span>
       <b-button
+        :disabled="!howMuch && !sourceMaterial"
+        size="sm"
+        variant="info"
+        @click="pushSourceMaterial()"
+        >Agregar Materia Prima</b-button
+      >
+
+      <b-button
         pill
         size="lg"
         variant="success"
         type="submit"
-        :disabled="$v.$invalid === true"
+        :disabled="
+          $v.$invalid === true || Object.keys(sourceMaterials).length === 0
+        "
         >Agregar Producto</b-button
       >
     </div>
@@ -126,7 +125,7 @@
       <h2 style="text-align: center;">
         Todavía no tenés Materias Primas Creadas
         <router-link
-          style="color: rgb(10, 92, 173); text-align:center; margin-top: 20px;"
+          style="color: rgb(10, 92, 173); text-align:center; margin-top: 10px;"
           to="/crear-materia-prima"
         >
           <h2 style="font-size: 4rem;">
@@ -163,9 +162,6 @@
       nameProduct: {
         required,
       },
-      howMuch: {
-        required,
-      },
       size: {
         required,
       },
@@ -178,15 +174,19 @@
       sourceMaterials: {
         required,
       },
-      sourceMaterial: {
-        required,
-      },
     },
     beforeCreate() {
       this.$store.dispatch("setSourceMaterials");
     },
     created() {},
     methods: {
+      plural(sourceMaterial) {
+        let result =
+          this.sourceMaterials[sourceMaterial.name].measurementUnit === "Unidad"
+            ? "es"
+            : "s";
+        return result;
+      },
       sendData() {
         this.$v.$touch();
         if (this.$v.$invalid) {
@@ -215,11 +215,8 @@
         }
       },
       pushSourceMaterial(newMeasurementUnit) {
-        this.$v.howMuch.$touch;
-        this.$v.sourceMaterial.$touch;
-
         if (
-          !this.$v.sourceMaterial.$invalid &&
+          this.sourceMaterial.$invalid !== "Nombre" &&
           this.howMuch &&
           this.sourceMaterial !== "Nombre"
         ) {
@@ -228,6 +225,8 @@
             howMuch: Number(this.howMuch),
             measurementUnit: this.unitOfSourceMaterial,
           });
+          this.howMuch = "";
+          this.sourceMaterial = "";
         }
       },
       deleteSourceMaterial(name) {
@@ -236,7 +235,8 @@
     },
     watch: {
       sourceMaterial: {
-        handler() {
+        handler(newVal) {
+          if (!newVal) return false;
           db.ref(`sourceMaterials/${this.sourceMaterial}`).on(
             "value",
             (snapshot) => {
@@ -249,12 +249,7 @@
         immediate: true,
       },
     },
-    computed: {
-      plural() {
-        let result = this.unitOfSourceMaterial === "Unidad" ? "es" : "s";
-        return result;
-      },
-    },
+    computed: {},
   };
 </script>
 
@@ -263,6 +258,7 @@
     display: flex;
     flex-direction: column;
     padding-top: 20px;
+    min-height: 90vh;
     justify-content: space-around;
     align-items: center;
   }
@@ -292,7 +288,7 @@
   div > h4,
   div > span,
   div > input {
-    margin: 10px;
+    margin: 7px;
   }
   form > span {
     display: flex;
