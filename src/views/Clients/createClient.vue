@@ -1,54 +1,94 @@
 <template>
   <form @submit.prevent="sendData()" novalidate autocomplete="off">
-    <div id="container" v-if="this.$store.state.products !== undefined">
+    <div id="container">
       <h2>Crear</h2>
+      <b-input-group>
+        <b-input
+          @input="$v.name.$touch"
+          :style="[
+            $v.name.$error
+              ? { border: '2px solid rgb(255, 36, 36)' }
+              : { color: 'green' },
+          ]"
+          type="text"
+          placeholder="Nombre"
+          v-model="name"
+        ></b-input>
+        <b-input
+          @input="$v.surname.$touch"
+          :style="[
+            $v.surname.$error
+              ? { border: '2px solid rgb(255, 36, 36)' }
+              : { color: 'green' },
+          ]"
+          type="text"
+          v-model="surname"
+          placeholder="Apellido"
+        ></b-input>
+      </b-input-group>
+      <b-input-group>
+        <b-input
+          @input="$v.streetName.$touch"
+          :style="[
+            $v.streetName.$error
+              ? { border: '2px solid rgb(255, 36, 36)' }
+              : { color: 'green' },
+          ]"
+          type="text"
+          placeholder="Calle"
+          v-model="streetName"
+        ></b-input>
+        <b-input
+          @input="$v.streetNumber.$touch"
+          :style="[
+            $v.streetNumber.$error
+              ? { border: '2px solid rgb(255, 36, 36)' }
+              : { color: 'green' },
+          ]"
+          type="number"
+          v-model="streetNumber"
+          placeholder="Altura"
+        ></b-input>
+      </b-input-group>
+      <b-input-group prepend="+54">
+        <b-form-select v-model.number="prefix">
+          <b-form-select-option
+            :value="prefix"
+            v-for="prefix in prefixes"
+            :key="prefix"
+          >
+            {{ prefix }}
+          </b-form-select-option>
+          <b-form-select-option value="Prefijo" selected disabled hidden>
+            Prefijo
+          </b-form-select-option>
+        </b-form-select>
+        <b-input
+          @input="$v.phoneNumber.$touch"
+          :style="[
+            $v.phoneNumber.$error
+              ? { border: '2px solid rgb(255, 36, 36)' }
+              : { color: 'green' },
+          ]"
+          type="number"
+          placeholder="Número de Teléfono"
+          v-model="phoneNumber"
+        ></b-input>
+      </b-input-group>
+
       <b-input
-        @input="$v.name.$touch"
+        @input="$v.company.$touch"
         :style="[
-          $v.name.$error
+          $v.company.$error
             ? { border: '2px solid rgb(255, 36, 36)' }
             : { color: 'green' },
         ]"
         type="text"
-        size="sm"
-        placeholder="Nombre"
-        v-model="name"
+        placeholder="Empresa"
+        v-model="company"
       ></b-input>
-      <b-input
-        @input="$v.address.$touch"
-        :style="[
-          $v.address.$error
-            ? { border: '2px solid rgb(255, 36, 36)' }
-            : { color: 'green' },
-        ]"
-        type="text"
-        size="sm"
-        placeholder="Direccion"
-        v-model="address"
-      ></b-input>
-      <b-input
-        @input="$v.phoneNumber.$touch"
-        :style="[
-          $v.phoneNumber.$error
-            ? { border: '2px solid rgb(255, 36, 36)' }
-            : { color: 'green' },
-        ]"
-        type="number"
-        size="sm"
-        placeholder="Numero de teléfono"
-        v-model="phoneNumber"
-      ></b-input>
-      <b-form-select
-        style="width:80vw;"
-        v-model="purchaseFrequency"
-        :options="purchaseFrequencyOptions"
-      >
-        <b-form-select-option value="Frecuencia de Compra" disabled hidden>
-          Frecuencia de Compra
-        </b-form-select-option>
-      </b-form-select>
       <b-button
-        :disabled="$v.$invalid === true"
+        :disabled="isNotValid"
         pill
         size="lg"
         variant="success"
@@ -56,69 +96,79 @@
         >Agregar</b-button
       >
     </div>
-    <span v-else>
-      <h2 style="text-align: center;">
-        Todavía no tenés Productos Creados
-        <router-link
-          style="color: rgb(10, 92, 173); text-align:center; margin-top: 20px;"
-          to="/crear-producto"
-        >
-          <h2 style="font-size: 4rem;">
-            ¡Crealos!
-          </h2>
-        </router-link>
-      </h2>
-    </span>
   </form>
 </template>
 
 <script>
   import { db } from "../../firebase/firebase.js";
   import { required } from "vuelidate/lib/validators";
+
   export default {
     name: "create-client",
     data() {
       return {
-        address: undefined,
+        streetName: undefined,
+        streetNumber: undefined,
         name: undefined,
-        phoneNumber: undefined,
-        purchaseFrequency: "Frecuencia de Compra",
-        purchaseFrequencyOptions: ["Alta", "Media", "Baja"],
+        surname: undefined,
+        phoneNumber: "",
+        prefix: "Prefijo",
+        prefixes: ["11", "223"],
+        company: undefined,
       };
     },
     validations: {
       name: {
         required,
       },
-      address: {
+      streetNumber: {
+        required,
+      },
+      streetName: {
         required,
       },
       phoneNumber: {
         required,
       },
-      purchaseFrequency: {
+      prefix: {
+        required,
+      },
+      company: {
+        required,
+      },
+      surname: {
         required,
       },
     },
-    beforeCreate() {
+    created() {
       this.$store.dispatch("setProducts");
     },
-    created() {},
+    computed: {
+      isNotValid() {
+        return this.$v.$invalid === true || this.prefix === "Prefijo"
+          ? true
+          : false;
+      },
+    },
     methods: {
       sendData() {
-        var newKey = db
+        let name = this.name.concat(" ", this.surname);
+        let address = this.streetName.concat(" ", this.streetNumber);
+        let phoneNumber = `+54 (${this.prefix}) ${this.phoneNumber}`;
+        let newKey = db
           .ref()
           .child("clients")
           .push().key;
 
-        var clientData = {
-          name: this.name,
-          address: this.address,
-          phoneNumber: this.phoneNumber,
-          purchaseFrequency: this.purchaseFrequency,
+        let clientData = {
+          name: name,
+          address: address,
+          id: newKey,
+          phoneNumber: phoneNumber,
+          company: this.company,
         };
-        var updates = {};
-        updates["/clients/" + this.name] = clientData;
+        let updates = {};
+        updates["/clients/" + name] = clientData;
         db.ref().update(updates);
         this.$router.push("clientes");
       },
@@ -130,15 +180,13 @@
   #container {
     display: flex;
     flex-direction: column;
-    height: 80vh;
+    min-height: 87vh;
     padding-top: 20px;
     justify-content: space-around;
     align-items: center;
   }
-  #container > input,
-  #container > input {
-    padding: 1.5em !important;
-    width: 80vw;
+  #container input {
+    max-width: 80vw;
   }
   h2 {
     font-weight: 500;
@@ -147,12 +195,22 @@
   div > h4,
   div > span,
   div > input {
-    margin: 10px;
+    margin: 1px 20px 14px 1px;
   }
   form > span {
     display: flex;
     align-items: center;
     height: 80vh;
     justify-content: center;
+  }
+  .input-group {
+    max-width: 80vw;
+    align-items: center;
+  }
+  select {
+    max-width: 15vw;
+    margin: 0 1vw 0 1vw;
+    padding: 1vh;
+    appearance: none !important;
   }
 </style>

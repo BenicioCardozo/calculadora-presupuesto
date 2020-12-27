@@ -14,6 +14,23 @@
         placeholder="Nombre"
         v-model="nameProduct"
       ></b-input>
+      <b-form-select v-model="type" class="mt-3"
+        ><b-form-select-option
+          selected
+          disabled
+          hidden
+          value="Tipo de producto"
+        >
+          Tipo de producto
+        </b-form-select-option>
+        <b-form-select-option
+          :value="type"
+          v-bind:key="type + ' ' + index"
+          v-for="(type, index) in types"
+        >
+          {{ type }}
+        </b-form-select-option></b-form-select
+      >
       <b-card-group columns class="select-characteristics">
         <b-card
           header="Color"
@@ -155,6 +172,8 @@
         color: undefined,
         qualities: ["Alta", "Media", "Baja"],
         quality: undefined,
+        type: "Tipo de producto",
+        types: ["Sss", "Aaaa"],
         unitOfSourceMaterial: "No seleccionaste un nombre",
       };
     },
@@ -199,6 +218,7 @@
             .push().key;
           let productData = {
             name: this.nameProduct,
+            type: this.type,
             sourceMaterials: this.sourceMaterials,
             characteristics: {
               color: this.color,
@@ -266,6 +286,9 @@
   #container > input {
     padding: 1.5em !important;
     width: 80vw;
+  }
+  #container > select {
+    margin-bottom: 2vh;
   }
   h2 {
     font-weight: 500;

@@ -45,6 +45,7 @@ export default new Vuex.Store({
             kits.push({
               name: kit.name,
               products: kit.products,
+              id: kit.id,
             });
             state.kits = kits;
           }
@@ -66,7 +67,8 @@ export default new Vuex.Store({
               characteristics: {
                 address: client.address,
                 phoneNumber: client.phoneNumber,
-                purchaseFrequency: client.purchaseFrequency,
+                id: client.id,
+                company: client.company,
               },
             });
             state.clients = clients;
@@ -86,6 +88,7 @@ export default new Vuex.Store({
             const product = snapshot.val()[key];
             products.push({
               name: product.name,
+              type: product.type,
               characteristics: product.characteristics,
               id: product.id,
               sourceMaterials: product.sourceMaterials,

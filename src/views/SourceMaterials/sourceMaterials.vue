@@ -59,7 +59,7 @@
             ></b-icon>
           </h5>
           <h5 v-else-if="filter.type">
-            {{ filter.type }}s
+            {{ filter.type }}
             <b-icon
               icon="trash"
               style="cursor:pointer;"

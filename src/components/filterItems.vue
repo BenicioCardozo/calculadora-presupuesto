@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div id="container">
     <b-dropdown text="Filtrar">
       <b-dropdown-text
         :key="criteria + ' ' + index"
@@ -36,13 +36,31 @@
         <b-dropdown-divider></b-dropdown-divider>
       </b-dropdown-text>
     </b-dropdown>
-    <span> </span>
+    <span :key="filter + ' ' + index" v-for="(filter, index) in filters">
+      <h5 v-if="filter.name === 'Precio'">
+        {{ filter.name }} {{ filter.method }} ${{ filter.number }}
+        <b-icon
+          icon="trash"
+          style="cursor:pointer;"
+          @click="deleteFilter(filter.name)"
+        ></b-icon>
+      </h5>
+      <h5 v-else-if="filter.type">
+        {{ filter.type }}s
+        <b-icon
+          icon="trash"
+          style="cursor:pointer;"
+          @click="deleteFilter('Tipo')"
+        ></b-icon>
+      </h5>
+    </span>
   </div>
 </template>
 
 <script>
   import { mapState } from "vuex";
   import Vue from "vue";
+  import filterItemsVue from "./filterItems.vue";
   export default {
     props: ["filtersOpt", "methodOpt", "items", "itemsToShow"],
     data() {
@@ -69,6 +87,12 @@
       ...mapState(["products"]),
     },
     methods: {
+      deleteFilter(filter) {
+        console.log(filter);
+        Vue.delete(this.filters, filter);
+        this.applyFilters(this.filters);
+        console.log(this.filters);
+      },
       filterMethod(criteria) {
         if (criteria === "Precio") {
           Vue.set(this.filters, criteria, {
@@ -84,6 +108,9 @@
         this.applyFilters(this.filters);
       },
       applyFilters(filters) {
+        console.log(filters);
+        if (Object.values(filters).length < 1)
+          this.$emit("update:itemsToShow", this.items);
         for (const key in filters) {
           if (key === "Precio") {
             this.items.forEach((element) => console.log(element.precio));
@@ -96,9 +123,12 @@
             });
             this.$emit("update:itemsToShow", filteredItems);
           } else if (filters[key].type) {
-            this.items = this.items.filter((item) => {
+            let filteredItems = this.items.filter((item) => {
               return item.tipo === filters[key].type;
             });
+            this.$emit("update:itemsToShow", filteredItems);
+          } else {
+            return this.$emit("update:itemsToShow", this.items);
           }
         }
       },
@@ -113,5 +143,10 @@
   }
   .buttons-header > * {
     margin: auto;
+  }
+  #container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 </style>

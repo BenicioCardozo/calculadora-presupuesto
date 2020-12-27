@@ -115,13 +115,14 @@
           this.submitStatus = "ERROR";
         } else {
           this.submitStatus = "OK";
-          var newKey = db
+          let newKey = db
             .ref()
             .child("products")
             .push().key;
           let kitData = {
             name: this.nameKit,
             products: this.products,
+            id: newKey,
           };
           console.dir(kitData);
           let updates = {};

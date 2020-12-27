@@ -21,7 +21,6 @@
 
 <script>
   import { db } from "../../firebase/firebase";
-
   export default {
     data() {
       return {
