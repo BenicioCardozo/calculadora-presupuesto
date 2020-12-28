@@ -24,7 +24,10 @@ export default new Vuex.Store({
             orders.push({
               deliveryTime: order.deliveryTime,
               client: order.client,
-              kit: order.kit,
+              createdAt: order.createdAt,
+              id: order.id,
+              kits: order.kits,
+              products: order.products,
               importance: order.importance,
             });
             state.orders = orders;
@@ -42,6 +45,7 @@ export default new Vuex.Store({
         if (snapshot.val()) {
           for (const key in snapshot.val()) {
             const kit = snapshot.val()[key];
+            console.log(kit);
             kits.push({
               name: kit.name,
               products: kit.products,

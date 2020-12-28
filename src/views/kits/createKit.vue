@@ -10,12 +10,11 @@
             : { color: 'green' },
         ]"
         type="text"
-        size="sm"
         placeholder="Nombre"
         v-model="nameKit"
       ></b-input>
       <h4 style="font-weight: 500;">Productos</h4>
-      <b-form-select size="sm" ref="sourceMaterialSelector" v-model="product">
+      <b-form-select ref="sourceMaterialSelector" v-model="product">
         <b-form-select-option selected disabled hidden value="Nombre">
           Nombre
         </b-form-select-option>
@@ -28,19 +27,12 @@
         </b-form-select-option>
       </b-form-select>
       <b-input
-        @input="pushProduct()"
-        :style="[
-          $v.quantity.$error
-            ? { border: '2px solid rgb(255, 36, 36)' }
-            : { color: 'green' },
-        ]"
         type="number"
-        size="sm"
         placeholder="Cantidad"
         v-model="quantity"
       ></b-input>
       <span
-        v-if="quantity && product !== 'Nombre'"
+        v-if="Object.keys(products).length !== 0"
         style="display:flex; justify-content: space-around;width:80vw;"
       >
         <h5 :key="product + ' ' + index" v-for="(product, index) in products">
@@ -55,23 +47,30 @@
         </h5>
       </span>
       <b-button
+        :disabled="!quantity || product === 'Nombre'"
+        variant="info"
+        @click="pushProduct()"
+        >Agregar Producto</b-button
+      >
+
+      <b-button
         pill
         size="lg"
         variant="success"
         type="submit"
-        :disabled="$v.$invalid === true"
+        :disabled="$v.$invalid === true || Object.keys(products).length === 0"
         >Agregar Kit</b-button
       >
     </div>
     <span v-else>
       <h2 style="text-align: center;">
-        Todavía no tenés Productos Creado
+        Todavía no tenés Productos Creados
         <router-link
           style="color: rgb(10, 92, 173); text-align:center; margin-top: 20px;"
           to="/crear-producto"
         >
           <h2 style="font-size: 4rem;">
-            ¡Crealas!
+            ¡Crealos!
           </h2>
         </router-link>
       </h2>
@@ -95,12 +94,6 @@
     },
     validations: {
       nameKit: {
-        required,
-      },
-      product: {
-        required,
-      },
-      quantity: {
         required,
       },
     },
@@ -132,15 +125,12 @@
         }
       },
       pushProduct() {
-        this.$v.quantity.$touch;
-        this.$v.product.$touch;
-
-        if (!this.$v.quantity.$invalid && this.product !== "Nombre") {
-          this.$set(this.products, this.product, {
-            name: this.product,
-            quantity: Number(this.quantity),
-          });
-        }
+        this.$set(this.products, this.product, {
+          name: this.product,
+          quantity: Number(this.quantity),
+        });
+        this.quantity = "";
+        this.product = "";
       },
       deleteProduct(name) {
         this.$delete(this.products, name);
@@ -161,7 +151,6 @@
   }
   #container > input,
   #container > input {
-    padding: 1.5em !important;
     width: 80vw;
   }
   h2 {

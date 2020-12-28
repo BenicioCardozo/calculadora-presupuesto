@@ -14,7 +14,7 @@
         placeholder="Nombre"
         v-model="nameProduct"
       ></b-input>
-      <b-form-select v-model="type" class="mt-3"
+      <b-form-select v-model="type" size="sm" class="mt-3"
         ><b-form-select-option
           selected
           disabled
@@ -40,6 +40,7 @@
         >
           <b-form-select
             v-model="color"
+            size="sm"
             class="select-inside-card"
             :options="colors"
           >
@@ -55,6 +56,7 @@
             v-model="size"
             class="select-inside-card"
             :options="sizes"
+            size="sm"
           >
           </b-form-select>
         </b-card>
@@ -68,16 +70,13 @@
             v-model="quality"
             class="select-inside-card"
             :options="qualities"
+            size="sm"
           >
           </b-form-select>
         </b-card>
       </b-card-group>
       <h4 style="font-weight: 500;">Materias Primas que Lleva</h4>
-      <b-form-select
-        size="sm"
-        ref="sourceMaterialSelector"
-        v-model="sourceMaterial"
-      >
+      <b-form-select size="sm" v-model="sourceMaterial">
         <b-form-select-option selected disabled hidden value="Nombre">
           Nombre
         </b-form-select-option>
@@ -92,6 +91,7 @@
       <span id="quantity-and-dropdown">
         <b-input
           v-model="howMuch"
+          size="sm"
           type="number"
           placeholder="Cantidad de Materia Prima"
         ></b-input>
@@ -284,7 +284,6 @@
   }
   #container > input,
   #container > input {
-    padding: 1.5em !important;
     width: 80vw;
   }
   #container > select {
@@ -299,19 +298,13 @@
     align-items: center;
     width: 80vw;
   }
-  #quantity-and-dropdown > h2 {
-    margin: 0 0 0 2vw;
-  }
-  #quantity-and-dropdown > input {
-    min-height: 100%;
-  }
   #select-placeholder {
     color: #fff;
   }
   div > h4,
   div > span,
   div > input {
-    margin: 7px;
+    margin: 5px;
   }
   form > span {
     display: flex;

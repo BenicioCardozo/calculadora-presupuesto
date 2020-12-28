@@ -31,9 +31,17 @@
         style="width:80vw;"
         v-model="deliveryTime"
         size="sm"
-        :date-format-options="{ month: 'numeric', day: 'numeric' }"
+        :min="today"
+        language
+        :date-format-options="{
+          year: undefined,
+          month: 'long',
+          day: '2-digit',
+          weekday: 'long',
+        }"
+        hide-header
         placeholder="Fecha de Entrega"
-        locale="es"
+        locale="es-AR"
       ></b-form-datepicker>
       <span id="sub-title">
         <h4>{{ subtitle }} que Lleva</h4>
@@ -76,16 +84,16 @@
         >Agregar {{ subtitle.slice(0, -1) }}</b-button
       >
       <span
-        v-if="Object.keys(kits).length > 0"
+        v-if="Object.keys(kitsAndProducts).length > 0"
         style="display:flex; justify-content: space-around;width:80vw;"
       >
-        <h5 :key="kit + ' ' + index" v-for="(kit, index) in kitsAndProducts">
+        <h5 :key="kit.name" v-for="kit in kitsAndProducts">
           {{ `${kit.name}  ${kit.quantity} ` }}
           <b-icon
             style="cursor:pointer;"
             icon="trash"
             scale="1.1"
-            @click.stop="deleteKit(kit.name)"
+            @click.stop="deleteKitOrProduct(kit.name)"
           >
           </b-icon>
         </h5>
@@ -95,8 +103,10 @@
         size="lg"
         variant="success"
         type="submit"
-        :disabled="$v.$invalid === true"
-        >Agregar Órden</b-button
+        :disabled="
+          $v.$invalid === true || Object.values(kitsAndProducts).length < 1
+        "
+        >Agregar Orden</b-button
       >
     </div>
     <span v-else>
@@ -135,11 +145,24 @@
       };
     },
     computed: {
+      today() {
+        const now = new Date();
+        const today = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate()
+        );
+        const minDate = new Date(today);
+        console.log(this.deliveryTime, minDate);
+
+        return minDate;
+      },
       subtitle() {
         return this.seeKits ? "Kits" : "Productos";
       },
       kitsAndProducts() {
         let result = { ...this.kits, ...this.products };
+        console.log(result);
         return result;
       },
     },
@@ -163,28 +186,30 @@
     methods: {
       sendData() {
         this.$v.$touch();
-        if (this.$v.$invalid && Object.keys(kits).length > 0) {
-          this.submitStatus = "ERROR";
-        } else {
-          this.submitStatus = "OK";
-          var newKey = db
-            .ref()
-            .child("orders")
-            .push().key;
-          let orderData = {
-            deliveryTime: this.deliveryTime,
-            client: this.client,
-            kits: this.kits,
-            products: this.products,
-            importance: this.importance,
-            id: newKey,
-          };
+        this.submitStatus = "OK";
+        let newKey = db
+          .ref()
+          .child("orders")
+          .push().key;
+        let now = new Date();
+        let orderData = {
+          deliveryTime: this.changeDateFormatTo(this.deliveryTime),
+          client: this.client,
+          kits: this.kits,
+          products: this.products,
+          createdAt: `${now.getDate()}/${parseInt(now.getMonth()) + 1}`,
+          importance: this.importance,
+          id: newKey,
+        };
 
-          let updates = {};
-          updates["/orders/" + this.deliveryTime] = orderData;
-          db.ref().update(updates);
-          this.$router.push("pedidos");
-        }
+        let updates = {};
+        updates["/orders/" + newKey] = orderData;
+        db.ref().update(updates);
+        this.$router.push("pedidos");
+      },
+      changeDateFormatTo(date) {
+        const [yy, mm, dd] = date.split(/-/g);
+        return `${dd}/${mm}`;
       },
       pushKit() {
         // this.$v.quantity.$touch;
@@ -202,8 +227,10 @@
         }
         (this.kit = "Kit"), (this.quantity = "");
       },
-      deleteKit(name) {
-        this.$delete(this.kits, name);
+      deleteKitOrProduct(name) {
+        this.kits[name]
+          ? this.$delete(this.kits, name)
+          : this.$delete(this.products, name);
       },
     },
     watch: {},
@@ -275,5 +302,8 @@
   }
   #sub-title > h4 {
     padding: 2vh;
+  }
+  .small {
+    display: none;
   }
 </style>

@@ -23,7 +23,7 @@
     <b-table
       striped
       hover
-      responsive="md"
+      responsive="sm"
       :fields="fields"
       :items="itemsToShow"
       v-if="clients"
