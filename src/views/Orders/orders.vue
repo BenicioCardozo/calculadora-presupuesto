@@ -30,9 +30,19 @@
         <template #cell(kits)="data">
           <span v-html="data.value"></span>
         </template>
-
         <template #cell(productos)="data">
           <span v-html="data.value"></span>
+        </template>
+
+        <template #cell(fecha_de_creación)="data">
+          <span>{{
+            data.value.substring(0, data.value.lastIndexOf("de"))
+          }}</span>
+        </template>
+        <template #cell(fecha_de_entrega)="data">
+          <span>{{
+            data.value.substring(0, data.value.lastIndexOf("de"))
+          }}</span>
         </template>
         <template #cell(id)="data">
           <b-td class="text-primary" style="white-space:nowrap;"

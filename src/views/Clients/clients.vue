@@ -10,24 +10,8 @@
       >
         Crear<b-icon icon="plus" aria-hidden="true"></b-icon
       ></b-button>
-      <!-- <filter-items
-        :methodOpt="{
-          types: companies,
-        }"
-        @setItems="setItems"
-        :filtersOpt="['Empresa']"
-        :items.sync="items"
-        :itemsToShow.sync="itemsToShow"
-      ></filter-items> -->
     </div>
-    <b-table
-      striped
-      hover
-      responsive="sm"
-      :fields="fields"
-      :items="itemsToShow"
-      v-if="clients"
-    >
+    <b-table striped hover responsive="sm" :items="itemsToShow" v-if="clients">
       <template #cell(nombre)="data">
         <b-td class="text-primary" style="white-space:nowrap;"
           >{{ data.value }}
@@ -72,7 +56,6 @@
     data() {
       return {
         hover: "rgb(0, 123, 255)",
-        fields: ["nombre", "dirección", "id", "número_de_teléfono", "empresa"],
         items: [],
         itemsToShow: [],
         companies: [],
@@ -99,12 +82,10 @@
         if (!itemsWithoutFormat.isChecked) {
           let itemsWithoutFormat = this.clients;
           itemsWithoutFormat.forEach(async (element) => {
-            if (!element) return false;
-            console.log(element);
+            if (!element.characteristics.id) return false;
             this.items.push({
               nombre: element.name,
               dirección: element.characteristics.address,
-              id: element.characteristics.id.substr(13),
               número_de_teléfono: element.characteristics.phoneNumber,
               empresa: element.characteristics.company,
             });

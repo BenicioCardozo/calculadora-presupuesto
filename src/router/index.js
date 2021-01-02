@@ -22,6 +22,10 @@ Vue.use(VueRouter);
 
 const routes = [
   {
+    path: "/",
+    component: login,
+  },
+  {
     path: "/login",
     component: login,
   },

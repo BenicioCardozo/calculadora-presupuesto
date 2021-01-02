@@ -191,6 +191,7 @@
             "Cristal",
             "Deslizador",
             "Gabardina",
+            "Mano de Obra",
           ],
         },
         fields: [

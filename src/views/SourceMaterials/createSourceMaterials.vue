@@ -76,6 +76,7 @@
           "Cristal",
           "Deslizadores",
           "Gabardina",
+          "Mano de Obra",
         ],
         qualities: ["Alta", "Media", "Baja"],
         colors: ["Beige", "Azul", "Blanco"],

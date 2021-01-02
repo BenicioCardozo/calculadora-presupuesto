@@ -32,6 +32,9 @@
         :items="itemsToShow"
         v-if="products"
       >
+        <template #cell(materias_primas)="data">
+          <span v-html="data.value"></span>
+        </template>
         <template #cell(nombre)="data">
           <b-td class="text-primary" style="white-space:nowrap;"
             >{{ data.value }}
@@ -114,7 +117,7 @@
             let p = Object.keys(query.val()).map((el) => {
               return `${el}: ${query.val()[el].howMuch}`;
             });
-            Vue.set(sourceMaterials, nameOfActualItem.name, p.join(", "));
+            Vue.set(sourceMaterials, nameOfActualItem.name, p.join("<br/>"));
           });
 
           return sourceMaterials;
