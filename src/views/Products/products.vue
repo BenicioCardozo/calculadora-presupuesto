@@ -106,7 +106,9 @@
 
           this.products.forEach(async (nameOfActualItem) => {
             let query = await db
-              .ref(`products/${nameOfActualItem.name}/sourceMaterials`)
+              .ref(
+                `users/${this.$store.getters["user/userProfile"].uid}/products/${nameOfActualItem.name}/sourceMaterials`
+              )
               .once("value");
 
             let p = Object.keys(query.val()).map((el) => {
@@ -164,7 +166,9 @@
         }
       },
       deleteProduct(product) {
-        db.ref("/products/" + product).remove();
+        db.ref(
+          `users/${this.$store.getters["user/userProfile"].uid}/products/${product}`
+        ).remove();
       },
       editProduct(productName) {
         this.$store.commit("changeName", productName);

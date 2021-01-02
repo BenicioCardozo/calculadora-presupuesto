@@ -115,7 +115,9 @@
         }
       },
       deleteClient(name) {
-        db.ref("/clients/" + name).remove();
+        db.ref(
+          `users/${this.$store.getters["user/userProfile"].uid}/clients/${name}`
+        ).remove();
       },
       editClient(name) {
         this.$store.commit("changeName", name);

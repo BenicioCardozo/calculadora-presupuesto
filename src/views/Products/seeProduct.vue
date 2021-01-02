@@ -78,24 +78,23 @@
     methods: {
       updateAmount(name, newAmount) {
         db.ref(
-          `products/${this.$store.state.nameOfActualItem}/sourceMaterials/${name}/howMuch`
+          `users/${this.$store.getters["user/userProfile"].uid}/products/${this.$store.state.nameOfActualItem}/sourceMaterials/${name}/howMuch`
         ).set(Number(newAmount));
       },
     },
     created() {
-      db.ref(`products/${this.$store.state.nameOfActualItem}`).on(
-        "value",
-        (snapshot) => {
-          this.characteristics = snapshot.val().characteristics;
-          this.sourceMaterials = snapshot.val().sourceMaterials;
-        }
-      );
+      db.ref(
+        `users/${this.$store.getters["user/userProfile"].uid}/products/${this.$store.state.nameOfActualItem}`
+      ).on("value", (snapshot) => {
+        this.characteristics = snapshot.val().characteristics;
+        this.sourceMaterials = snapshot.val().sourceMaterials;
+      });
     },
     watch: {
       characteristics: {
         handler(newCharacteristics) {
           db.ref(
-            `/products/${this.$store.state.nameOfActualItem}/characteristics`
+            `users/${this.$store.getters["user/userProfile"].uid}/products/${this.$store.state.nameOfActualItem}/characteristics`
           ).set(newCharacteristics);
         },
         deep: true,

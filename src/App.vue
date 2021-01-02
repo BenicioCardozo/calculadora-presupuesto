@@ -61,7 +61,7 @@
     margin: auto;
   }
   .table th,
-  .table td {
+  tr td {
     vertical-align: middle !important;
   }
 </style>

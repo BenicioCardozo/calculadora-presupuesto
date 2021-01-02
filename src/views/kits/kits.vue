@@ -62,42 +62,6 @@
           >
         </template></b-table
       >
-      <!-- <b-button
-          variant="primary"
-          :key="kit + ' ' + index"
-          v-for="(kit, index) in kits"
-          @click="seeKitInfo(kit.name)"
-        >
-          {{ kit.name }}
-          <b-dropdown variant="primary">
-            <template #button-content>
-              <b-icon
-                scale="1.2"
-                icon="three-dots-vertical"
-                aria-hidden="true"
-              ></b-icon>
-            </template>
-            <b-dropdown-item-button
-              variant="danger"
-              @click.stop="deleteKit(kit.name)"
-            >
-              <b-icon icon="trash-fill" aria-hidden="true"></b-icon>
-              Eliminar
-            </b-dropdown-item-button>
-          </b-dropdown>
-        </b-button>
-        <b-button
-          @click="$router.push('crear-kit')"
-          variant="outline-primary"
-          @mouseover="hover = 'rgb(255, 255, 255)'"
-          @mouseout="hover = 'rgb(0, 123, 255)'"
-        >
-          <b-icon
-            :style="{ color: hover }"
-            icon="plus"
-            aria-hidden="true"
-          ></b-icon>
-        </b-button> -->
     </div>
   </div>
 </template>
@@ -132,7 +96,9 @@
 
           this.kits.forEach(async (nameOfActualItem) => {
             let query = await db
-              .ref(`kits/${nameOfActualItem.name}/products`)
+              .ref(
+                `users/${this.$store.getters["user/userProfile"].uid}/kits/${nameOfActualItem.name}/products`
+              )
               .once("value");
 
             let p = Object.keys(query.val()).map((el) => {
@@ -182,14 +148,16 @@
               nombre: element.name,
               productos: products[element.name],
               id: element.id.substr(13),
-              precio: price ? `$${price}` : "Cargando...",
+              precio: `$${price.toLocaleString("es-AR")}`,
             });
             this.itemsToShow = this.items;
           });
         }
       },
       deleteKit(kit) {
-        db.ref("/kits/" + kit).remove();
+        db.ref(
+          `users/${this.$store.getters["user/userProfile"].uid}/kits/${kit}`
+        ).remove();
       },
       editKit(kit) {
         this.$store.commit("changeName", kit);

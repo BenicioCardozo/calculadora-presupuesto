@@ -119,7 +119,9 @@
           };
           console.dir(kitData);
           let updates = {};
-          updates["/kits/" + this.nameKit] = kitData;
+          updates[
+            `users/${this.$store.getters["user/userProfile"].uid}/kits/${this.nameKit}`
+          ] = kitData;
           db.ref().update(updates);
           this.$router.push("kits");
         }

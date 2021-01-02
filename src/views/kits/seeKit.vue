@@ -80,7 +80,7 @@
     methods: {
       addProduct(newVal) {
         db.ref(
-          `kits/${this.$store.state.nameOfActualItem}/products/${this.newProductName}`
+          `users/${this.$store.getters["user/userProfile"].uid}/kits/${this.$store.state.nameOfActualItem}/products/${this.newProductName}`
         ).set({
           name: this.newProductName,
           quantity: this.newProductQuantity,
@@ -92,7 +92,7 @@
       },
       deleteProduct(name) {
         db.ref(
-          `kits/${this.$store.state.nameOfActualItem}/products/${name}`
+          `users/${this.$store.getters["user/userProfile"].uid}/kits/${this.$store.state.nameOfActualItem}/products/${name}`
         ).set(null);
         this.$delete(this.productsOfKit, name);
         this.setKitsProducts();
@@ -102,13 +102,13 @@
         if (params.newVal == 0 || !params.newVal) {
           this.$delete(this.productsOfKit, params.product);
           db.ref(
-            `kits/${this.$store.state.nameOfActualItem}/products/${params.product}`
+            `users/${this.$store.getters["user/userProfile"].uid}/kits/${this.$store.state.nameOfActualItem}/products/${params.product}`
           ).set(null);
           this.setKitsProducts();
         } else {
           let { product, field, newVal } = params;
           const ref = db.ref(
-            `kits/${this.$store.state.nameOfActualItem}/products/${product}/${field}`
+            `users/${this.$store.getters["user/userProfile"].uid}/kits/${this.$store.state.nameOfActualItem}/products/${product}/${field}`
           );
           ref.set(newVal);
           this.setKitsProducts();
@@ -117,32 +117,31 @@
       setKitsProducts() {
         this.price = 0;
         let kitProductsQuery = new Promise((res, rej) => {
-          db.ref(`kits/${this.$store.state.nameOfActualItem}/products`).once(
-            "value",
-            async (snapshot) => {
-              console.log(snapshot.val());
-              let productsOfKit = [];
-              for (const iterator of Object.values(snapshot.val())) {
-                let productPrice = await this.$store.dispatch(
-                  "setProductPrice",
-                  iterator.name
-                );
-                console.log(productPrice, iterator);
-                this.price += productPrice * Number(iterator.quantity);
-                productsOfKit.push(iterator.name);
-                this.$set(this.productsOfKit, iterator.name, {
-                  nombre: iterator.name,
-                  cantidad: iterator.quantity,
-                  subtotal: `$${productPrice * Number(iterator.quantity)}`,
-                });
-              }
-              res(productsOfKit);
+          db.ref(
+            `users/${this.$store.getters["user/userProfile"].uid}/kits/${this.$store.state.nameOfActualItem}/products`
+          ).once("value", async (snapshot) => {
+            let productsOfKit = [];
+            for (const iterator of Object.values(snapshot.val())) {
+              let productPrice = await this.$store.dispatch(
+                "setProductPrice",
+                iterator.name
+              );
+              this.price += productPrice * Number(iterator.quantity);
+              productsOfKit.push(iterator.name);
+              this.$set(this.productsOfKit, iterator.name, {
+                nombre: iterator.name,
+                cantidad: iterator.quantity,
+                subtotal: `$${productPrice * Number(iterator.quantity)}`,
+              });
             }
-          );
+            res(productsOfKit);
+          });
         });
 
         let productsQuery = new Promise((res, rej) => {
-          db.ref(`products`).once("value", (snap) => {
+          db.ref(
+            `users/${this.$store.getters["user/userProfile"].uid}/products`
+          ).once("value", (snap) => {
             let allProducts = Object.values(snap.val()).map((el) => el.name);
             res(allProducts);
           });
@@ -154,7 +153,6 @@
             (item, index) => merge.indexOf(item) != index
           );
           let mergeUnique = [...new Set(merge)];
-          console.log(duplicates, mergeUnique);
           this.productsList = mergeUnique.filter(
             (el) => !duplicates.includes(el)
           );

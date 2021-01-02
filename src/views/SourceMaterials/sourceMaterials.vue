@@ -227,7 +227,9 @@
     },
     methods: {
       deleteSourceMaterial(sourceMaterial) {
-        db.ref(`/sourceMaterials/${sourceMaterial}`).remove();
+        db.ref(
+          `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${sourceMaterial}`
+        ).remove();
       },
       editSourceMaterial(sourceMaterialName) {
         this.$store.commit("changeName", sourceMaterialName);

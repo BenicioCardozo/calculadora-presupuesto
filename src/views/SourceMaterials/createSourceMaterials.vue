@@ -114,7 +114,9 @@
         };
 
         let updates = {};
-        updates["/sourceMaterials/" + this.name] = sourceMaterialData;
+        updates[
+          `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${this.name}`
+        ] = sourceMaterialData;
 
         db.ref().update(updates);
 

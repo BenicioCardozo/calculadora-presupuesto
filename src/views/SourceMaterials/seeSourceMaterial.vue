@@ -71,30 +71,31 @@
     },
     created() {
       if (!this.$store.state.nameOfActualItem) return false;
-      db.ref("/sourceMaterials/" + this.$store.state.nameOfActualItem).on(
-        "value",
-        (snapshot) => {
-          this.name = snapshot.val().name;
+      db.ref(
+        `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${this.$store.state.nameOfActualItem}`
+      ).on("value", (snapshot) => {
+        this.name = snapshot.val().name;
 
-          this.price = snapshot.val().price;
+        this.price = snapshot.val().price;
 
-          this.characteristics = snapshot.val().characteristics;
-        }
-      );
+        this.characteristics = snapshot.val().characteristics;
+      });
     },
 
     watch: {
       price: {
         handler(newPrice) {
-          db.ref(`/sourceMaterials/${this.name}/price`).set(newPrice);
+          db.ref(
+            `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${this.name}/price`
+          ).set(newPrice);
         },
         deep: true,
       },
       characteristics: {
         handler(newCharacteristics) {
-          db.ref(`/sourceMaterials/${this.name}/characteristics`).set(
-            newCharacteristics
-          );
+          db.ref(
+            `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${this.name}/characteristics`
+          ).set(newCharacteristics);
         },
         deep: true,
       },

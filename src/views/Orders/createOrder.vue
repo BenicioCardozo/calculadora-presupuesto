@@ -193,27 +193,31 @@
           .push().key;
         let now = new Date();
         let orderData = {
-          deliveryTime: this.changeDateFormatTo(this.deliveryTime),
+          deliveryTime: this.toLocaleDate(this.deliveryTime),
           client: this.client,
           kits: this.kits,
           products: this.products,
-          createdAt: `${now.getDate()}/${parseInt(now.getMonth()) + 1}`,
+          createdAt: `${this.toLocaleDate(now)}`,
           importance: this.importance,
           id: newKey,
         };
 
         let updates = {};
-        updates["/orders/" + newKey] = orderData;
+        updates[
+          `users/${this.$store.getters["user/userProfile"].uid}/orders/${newKey}`
+        ] = orderData;
         db.ref().update(updates);
         this.$router.push("pedidos");
       },
-      changeDateFormatTo(date) {
-        const [yy, mm, dd] = date.split(/-/g);
-        return `${dd}/${mm}`;
+      toLocaleDate(date) {
+        const options = {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        };
+        return new Date(date).toLocaleDateString("es-AR", options);
       },
       pushKit() {
-        // this.$v.quantity.$touch;
-        // this.$v.kit.$touch;
         if (this.seeKits) {
           this.$set(this.kits, this.kit, {
             name: this.kit,

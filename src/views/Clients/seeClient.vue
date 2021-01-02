@@ -88,24 +88,23 @@
       };
     },
     created() {
-      db.ref(`clients/${this.$store.state.nameOfActualItem}`).on(
-        "value",
-        (snapshot) => {
-          this.characteristics = {
-            address: snapshot.val().address,
-            phoneNumber: snapshot.val().phoneNumber,
-            name: snapshot.val().name,
-            company: snapshot.val().company,
-          };
-        }
-      );
+      db.ref(
+        `users/${this.$store.getters["user/userProfile"].uid}/clients/${this.$store.state.nameOfActualItem}`
+      ).on("value", (snapshot) => {
+        this.characteristics = {
+          address: snapshot.val().address,
+          phoneNumber: snapshot.val().phoneNumber,
+          name: snapshot.val().name,
+          company: snapshot.val().company,
+        };
+      });
     },
     watch: {
       characteristics: {
         handler(newCharacteristics) {
-          db.ref(`/clients/${this.$store.state.nameOfActualItem}/`).set(
-            newCharacteristics
-          );
+          db.ref(
+            `users/${this.$store.getters["user/userProfile"].uid}/clients/${this.$store.state.nameOfActualItem}/`
+          ).set(newCharacteristics);
         },
         deep: true,
       },

@@ -168,7 +168,9 @@
           company: this.company,
         };
         let updates = {};
-        updates["/clients/" + name] = clientData;
+        updates[
+          `users/${this.$store.getters["user/userProfile"].uid}/clients/${name}`
+        ] = clientData;
         db.ref().update(updates);
         this.$router.push("clientes");
       },

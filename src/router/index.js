@@ -147,13 +147,3 @@ router.beforeEach((to, from, next) => {
   }
 });
 export default router;
-/*{
-  "rules": {
-    "users": {
-      "$uid": {
-        ".write": "$uid === auth.uid",
-         ".read": "$uid === auth.id"
-      }
-    }
-  }
-} */

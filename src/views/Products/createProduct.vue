@@ -229,7 +229,9 @@
           };
           console.dir(productData);
           let updates = {};
-          updates["/products/" + this.nameProduct] = productData;
+          updates[
+            `users/${this.$store.getters["user/userProfile"].uid}/products/${this.nameProduct}`
+          ] = productData;
           db.ref().update(updates);
           this.$router.push("productos");
         }
@@ -257,14 +259,13 @@
       sourceMaterial: {
         handler(newVal) {
           if (!newVal) return false;
-          db.ref(`sourceMaterials/${this.sourceMaterial}`).on(
-            "value",
-            (snapshot) => {
-              let snap = snapshot.val();
-              if (!snap) return false;
-              this.unitOfSourceMaterial = snap.price.measurementUnit;
-            }
-          );
+          db.ref(
+            `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${this.sourceMaterial}`
+          ).on("value", (snapshot) => {
+            let snap = snapshot.val();
+            if (!snap) return false;
+            this.unitOfSourceMaterial = snap.price.measurementUnit;
+          });
         },
         immediate: true,
       },
