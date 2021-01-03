@@ -156,6 +156,7 @@ export default new Vuex.Store({
           `users/${context.state.user.userProfile.uid}/products/${name}/sourceMaterials`
         )
         .once("value");
+      if (!sourceMaterialsQuery.val()) throw new Error("Invalid Product");
       let sourceMaterials = Object.values(sourceMaterialsQuery.val()).map(
         (el) => {
           return {

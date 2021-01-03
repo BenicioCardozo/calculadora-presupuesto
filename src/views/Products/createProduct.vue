@@ -120,7 +120,7 @@
         </h5>
       </span>
       <b-button
-        :disabled="!howMuch && !sourceMaterial"
+        :disabled="!howMuch || !sourceMaterial"
         size="sm"
         variant="info"
         @click="pushSourceMaterial()"

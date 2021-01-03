@@ -120,13 +120,23 @@
             let result = {};
             let prices = [];
             for (const key in iterator.products) {
-              let product = iterator.products[key];
-              let priceOfProduct =
-                (await this.$store.dispatch("setProductPrice", product.name)) *
-                product.quantity;
-              prices.push(priceOfProduct);
-              let finalPrice = prices.reduce((a, b) => a + b, 0);
-              Vue.set(result, iterator.name, finalPrice);
+              try {
+                let product = iterator.products[key];
+                let priceOfProduct =
+                  (await this.$store.dispatch(
+                    "setProductPrice",
+                    product.name
+                  )) * product.quantity;
+                prices.push(priceOfProduct);
+                let finalPrice = prices.reduce((a, b) => a + b, 0);
+                Vue.set(result, iterator.name, finalPrice);
+              } catch (error) {
+                await db
+                  .ref(
+                    `users/${this.$store.getters["user/userProfile"].uid}/kits/${iterator.name}/products/${iterator.products[key].name}`
+                  )
+                  .set(null);
+              }
             }
             kitsPrices[iterator.name] = Object.values(result)[0];
           }
