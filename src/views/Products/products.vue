@@ -162,7 +162,7 @@
               tamaño: element.characteristics.size,
               materias_primas: sourceMaterials[element.name],
               ID: element.id.substr(13),
-              precio: `$${precio}`,
+              precio: `$${precio.toLocaleString("es-AR")}`,
             });
             this.itemsToShow = this.items;
           });

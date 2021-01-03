@@ -115,6 +115,7 @@
         async handler(newVal, oldVal) {
           let result = {};
           let kitsPrices = {};
+          if (!newVal) return false;
           for (const iterator of newVal) {
             let result = {};
             let prices = [];
@@ -136,23 +137,21 @@
       },
     },
     methods: {
-      async setItems() {
+      async setItems(itemsWithoutFormat) {
         this.items = [];
-        let itemsWithoutFormat = this.kits;
-        if (itemsWithoutFormat) {
-          itemsWithoutFormat.forEach(async (element) => {
-            if (!element) return false;
-            let price = this.prices[element.name];
-            let products = await this.productsText;
-            this.items.push({
-              nombre: element.name,
-              productos: products[element.name],
-              id: element.id.substr(13),
-              precio: `$${price.toLocaleString("es-AR")}`,
-            });
-            this.itemsToShow = this.items;
+        if (!itemsWithoutFormat) return false;
+        itemsWithoutFormat.forEach(async (element) => {
+          if (!element) return false;
+          let price = this.prices[element.name];
+          let products = await this.productsText;
+          this.items.push({
+            nombre: element.name,
+            productos: products[element.name],
+            id: element.id.substr(13),
+            precio: `$${price.toLocaleString("es-AR")}`,
           });
-        }
+          this.itemsToShow = this.items;
+        });
       },
       deleteKit(kit) {
         db.ref(

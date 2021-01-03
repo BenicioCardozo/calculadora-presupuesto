@@ -6,9 +6,7 @@
         <b-input
           @input="$v.name.$touch"
           :style="[
-            $v.name.$error
-              ? { border: '2px solid rgb(255, 36, 36)' }
-              : { color: 'green' },
+            $v.name.$error ? { border: '2px solid rgb(255, 36, 36)' } : null,
           ]"
           type="text"
           placeholder="Nombre"
@@ -17,9 +15,7 @@
         <b-input
           @input="$v.surname.$touch"
           :style="[
-            $v.surname.$error
-              ? { border: '2px solid rgb(255, 36, 36)' }
-              : { color: 'green' },
+            $v.surname.$error ? { border: '2px solid rgb(255, 36, 36)' } : null,
           ]"
           type="text"
           v-model="surname"
@@ -32,7 +28,7 @@
           :style="[
             $v.streetName.$error
               ? { border: '2px solid rgb(255, 36, 36)' }
-              : { color: 'green' },
+              : null,
           ]"
           type="text"
           placeholder="Calle"
@@ -43,7 +39,7 @@
           :style="[
             $v.streetNumber.$error
               ? { border: '2px solid rgb(255, 36, 36)' }
-              : { color: 'green' },
+              : null,
           ]"
           type="number"
           v-model="streetNumber"
@@ -51,7 +47,7 @@
         ></b-input>
       </b-input-group>
       <b-input-group prepend="+54">
-        <b-form-select v-model.number="prefix">
+        <b-form-select v-model.number="prefix" style="appearance: none;">
           <b-form-select-option
             :value="prefix"
             v-for="prefix in prefixes"
@@ -68,7 +64,7 @@
           :style="[
             $v.phoneNumber.$error
               ? { border: '2px solid rgb(255, 36, 36)' }
-              : { color: 'green' },
+              : null,
           ]"
           type="number"
           placeholder="Número de Teléfono"
@@ -79,9 +75,7 @@
       <b-input
         @input="$v.company.$touch"
         :style="[
-          $v.company.$error
-            ? { border: '2px solid rgb(255, 36, 36)' }
-            : { color: 'green' },
+          $v.company.$error ? { border: '2px solid rgb(255, 36, 36)' } : null,
         ]"
         type="text"
         placeholder="Empresa"
@@ -213,6 +207,5 @@
     max-width: 15vw;
     margin: 0 1vw 0 1vw;
     padding: 1vh;
-    appearance: none !important;
   }
 </style>

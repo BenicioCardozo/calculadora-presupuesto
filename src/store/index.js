@@ -156,7 +156,6 @@ export default new Vuex.Store({
           `users/${context.state.user.userProfile.uid}/products/${name}/sourceMaterials`
         )
         .once("value");
-
       let sourceMaterials = Object.values(sourceMaterialsQuery.val()).map(
         (el) => {
           return {
@@ -186,7 +185,18 @@ export default new Vuex.Store({
         })
       );
 
-      //
+      sourceMaterialsPricesDecapsulate.map(async (el) => {
+        if (!Object.values(el)[0]) {
+          await db
+            .ref(
+              `users/${
+                context.state.user.userProfile.uid
+              }/products/${name}/sourceMaterials/${Object.keys(el)[0]}`
+            )
+            .set(null);
+        }
+      });
+
       let result = sourceMaterials
         .map((el, i) => {
           return (

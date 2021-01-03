@@ -5,9 +5,7 @@
       <b-input
         @input="$v.nameKit.$touch"
         :style="[
-          $v.nameKit.$error
-            ? { border: '2px solid rgb(255, 36, 36)' }
-            : { color: 'green' },
+          $v.nameKit.$error ? { border: '2px solid rgb(255, 36, 36)' } : null,
         ]"
         type="text"
         placeholder="Nombre"

@@ -7,8 +7,6 @@
           variant="primary"
           style="margin: 2vh 5vh;"
           size="lg"
-          @mouseover="hover = 'rgb(255, 255, 255)'"
-          @mouseout="hover = 'rgb(0, 123, 255)'"
           @click="$router.push('crear-materia-prima')"
         >
           Crear<b-icon icon="plus" aria-hidden="true"></b-icon

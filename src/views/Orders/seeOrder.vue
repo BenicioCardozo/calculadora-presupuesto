@@ -2,7 +2,7 @@
   <div id="container">
     <div id="select-inputs">
       <span v-if="id">
-        <h2>Precio Final: ${{ price }}</h2>
+        <h2>Precio Final: ${{ price.toLocaleString("es-AR") }}</h2>
       </span>
       <b-input-group prepend="Cliente">
         <b-form-select
@@ -299,7 +299,7 @@
               nombre: kit.nombre,
               cantidad: kit.cantidad,
               tipo: "Kit",
-              subtotal: `$${finalPriceOfKit}`,
+              subtotal: `$${finalPriceOfKit.toLocaleString("es-AR")}`,
             });
           }
         }
@@ -314,7 +314,7 @@
                 nombre: el.name,
                 tipo: "Producto",
                 cantidad: el.quantity,
-                subtotal: `$${price}`,
+                subtotal: `$${price.toLocaleString("es-AR")}`,
               };
             })
           );

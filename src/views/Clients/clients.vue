@@ -79,21 +79,16 @@
       setItems(itemsWithoutFormat) {
         this.items = [];
         if (!itemsWithoutFormat) return false;
-        if (!itemsWithoutFormat.isChecked) {
-          let itemsWithoutFormat = this.clients;
-          itemsWithoutFormat.forEach(async (element) => {
-            if (!element.characteristics.id) return false;
-            this.items.push({
-              nombre: element.name,
-              dirección: element.characteristics.address,
-              número_de_teléfono: element.characteristics.phoneNumber,
-              empresa: element.characteristics.company,
-            });
-            this.itemsToShow = this.items;
+        itemsWithoutFormat.forEach(async (element) => {
+          this.items.push({
+            nombre: element.name,
+            dirección: element.characteristics.address,
+            número_de_teléfono: element.characteristics.phoneNumber,
+            empresa: element.characteristics.company,
           });
-        } else {
-          this.items = [...itemsWithoutFormat.items];
-        }
+          console.log(this.items);
+          this.itemsToShow = this.items;
+        });
       },
       deleteClient(name) {
         db.ref(
