@@ -321,10 +321,10 @@
           this.productsAndKits = this.productsAndKits.concat(products);
         }
         let allSubTotals = this.productsAndKits.map((el) =>
-          Number(el.subtotal.split(/(\d+)/)[1])
+          Number(el.subtotal.replace(/^\D+/g, "").replace(/\./g, ""))
         );
-        console.log(allSubTotals);
-        this.price = allSubTotals.reduce((a, b) => a + b, 0);
+        allSubTotals = allSubTotals.reduce((a, b) => a + b, 0);
+        this.price = allSubTotals;
       },
     },
   };
@@ -345,9 +345,9 @@
   #select-inputs {
     display: flex;
     flex-direction: column;
-    flex: 0.2;
     justify-content: space-around;
     align-items: center;
+    min-height: 30vh;
   }
   @media screen and (min-width: 350px) {
     .input-group {

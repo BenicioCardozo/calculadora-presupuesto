@@ -55,7 +55,6 @@ export default new Vuex.Store({
           if (snapshot.val()) {
             for (const key in snapshot.val()) {
               const kit = snapshot.val()[key];
-              console.log(kit);
               kits.push({
                 name: kit.name,
                 products: kit.products,

@@ -2,27 +2,17 @@
   <div>
     <h1>Productos</h1>
     <div>
-      <div class="buttons-header">
-        <b-button
-          variant="primary"
-          style="margin: 2vh 5vh;"
-          size="lg"
-          @click="$router.push('crear-producto')"
-        >
-          Crear<b-icon icon="plus" aria-hidden="true"></b-icon
-        ></b-button>
-        <filterItems
-          :methodOpt="{
-            price: ['<', '>'],
-            types: ['Sss', 'Aaaa'],
-          }"
-          @setItems="setItems"
-          :filtersOpt="['Precio', 'Tipo']"
-          :items.sync="items"
-          :itemsToShow.sync="itemsToShow"
-        >
-        </filterItems>
-      </div>
+      <filterItems
+        :methodOpt="{
+          price: ['<', '>'],
+          types: ['Sss', 'Aaaa'],
+        }"
+        @setItems="setItems"
+        :filtersOpt="['Precio', 'Tipo']"
+        :items.sync="items"
+        :itemsToShow.sync="itemsToShow"
+      >
+      </filterItems>
 
       <b-table
         striped

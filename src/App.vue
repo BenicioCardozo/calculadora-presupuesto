@@ -47,21 +47,9 @@
     -webkit-appearance: none;
     margin: 0;
   }
-
-  .buttons-header {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  .buttons-header > div.dropdown {
-    margin: 3vh auto !important;
-    width: 30vw;
-  }
-  .buttons-header > * {
-    margin: auto;
-  }
   .table th,
   tr td {
     vertical-align: middle !important;
+    border-top: none !important;
   }
 </style>

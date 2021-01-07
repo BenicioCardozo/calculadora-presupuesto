@@ -1,8 +1,5 @@
 <template>
   <b-form novalidate>
-    <router-view />
-
-    <h2>Crear</h2>
     <b-input-group class="mb-3" prepend="Nombre">
       <b-form-input v-model="name"> </b-form-input>
     </b-input-group>
@@ -22,7 +19,7 @@
     <b-input-group prepend="$">
       <b-form-input
         v-model.number="price.amount"
-        placeholder="Precio"
+        placeholder="Costo"
         type="number"
       ></b-form-input>
       <b-dropdown
@@ -85,8 +82,9 @@
     computed: {
       isFormValid() {
         if (
-          this.name != "Nombre de la Materia Prima" &&
-          (this.price.amount && this.price.measurementUnit) != undefined
+          this.name &&
+          this.price.measurementUnit != undefined &&
+          this.price.amount !== (undefined || "")
         ) {
           return true;
         } else {
@@ -133,7 +131,7 @@
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
-    height: 80vh;
+    min-height: 90vh;
   }
   .input-group {
     width: 90% !important;

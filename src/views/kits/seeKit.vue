@@ -3,7 +3,9 @@
     <div id="container">
       <span>
         <h2>{{ this.$store.state.nameOfActualItem }}</h2>
-        <h4 style="color:rgb(51, 125, 59);">Precio Final ${{ price }}</h4>
+        <h4 style="color:rgb(51, 125, 59);">
+          Precio Final ${{ price.toLocaleString("es-AR") }}
+        </h4>
       </span>
       <span>
         <h5>Añadir Producto</h5>
@@ -98,7 +100,6 @@
         this.setKitsProducts();
       },
       actValue(params) {
-        console.log(params);
         if (params.newVal == 0 || !params.newVal) {
           this.$delete(this.productsOfKit, params.product);
           db.ref(
@@ -131,7 +132,9 @@
               this.$set(this.productsOfKit, iterator.name, {
                 nombre: iterator.name,
                 cantidad: iterator.quantity,
-                subtotal: `$${productPrice * Number(iterator.quantity)}`,
+                subtotal: `$${(
+                  productPrice * Number(iterator.quantity)
+                ).toLocaleString("es-AR")}`,
               });
             }
             res(productsOfKit);

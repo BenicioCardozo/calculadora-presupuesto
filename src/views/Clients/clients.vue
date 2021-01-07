@@ -86,7 +86,6 @@
             número_de_teléfono: element.characteristics.phoneNumber,
             empresa: element.characteristics.company,
           });
-          console.log(this.items);
           this.itemsToShow = this.items;
         });
       },

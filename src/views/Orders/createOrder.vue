@@ -153,7 +153,6 @@
           now.getDate()
         );
         const minDate = new Date(today);
-        console.log(this.deliveryTime, minDate);
 
         return minDate;
       },
@@ -162,7 +161,6 @@
       },
       kitsAndProducts() {
         let result = { ...this.kits, ...this.products };
-        console.log(result);
         return result;
       },
     },

@@ -90,7 +90,6 @@
     list-style: none;
     flex-wrap: wrap;
     font-family: Avenir, Helvetica, Arial, sans-serif;
-    font-weight: 700;
     font-size: 1.2em;
   }
   #mobile-header {
@@ -100,6 +99,14 @@
   }
   a {
     padding: 5px;
+  }
+  a[href] :hover {
+    text-decoration: none !important ;
+    color: #007bff;
+  }
+  a:hover {
+    background-color: #54268f;
+    border-radius: 10px;
   }
   #top a.router-link-exact-active {
     color: #42b983;

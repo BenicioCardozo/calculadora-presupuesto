@@ -1,47 +1,54 @@
 <template>
   <div id="container">
-    <b-dropdown text="Filtrar">
-      <b-dropdown-form>
-        <b-dropdown-text
-          :key="criteria + ' ' + index"
-          v-for="(criteria, index) in filtersOpt"
-        >
-          <h6>Por {{ criteria }}</h6>
-          <b-input-group style="display: flex; align-items: center">
-            <template v-if="criteria === 'Precio'" #prepend>
+    <div class="buttons-header">
+      <b-button variant="primary" @click="$router.push('crear-producto')">
+        Crear&nbsp;<b-icon icon="plus" aria-hidden="true"></b-icon
+      ></b-button>
+      <b-dropdown text="Filtrar">
+        <b-dropdown-form>
+          <b-dropdown-text
+            :key="criteria + ' ' + index"
+            v-for="(criteria, index) in filtersOpt"
+          >
+            <h6>Por {{ criteria }}</h6>
+            <b-input-group style="display: flex; align-items: center">
+              <template v-if="criteria === 'Precio'" #prepend>
+                <b-form-select
+                  size="sm"
+                  v-model="filter.price.method"
+                  :options="methodOpt.price"
+                >
+                </b-form-select>
+              </template>
               <b-form-select
+                v-else-if="criteria === 'Tipo'"
                 size="sm"
-                v-model="filter.price.method"
-                :options="methodOpt.price"
+                @change="filterMethod(criteria)"
+                v-model="filter.type"
+                :options="methodOpt.types"
               >
               </b-form-select>
-            </template>
-            <b-form-select
-              v-else-if="criteria === 'Tipo'"
-              size="sm"
-              @change="filterMethod(criteria)"
-              v-model="filter.type"
-              :options="methodOpt.types"
-            >
-            </b-form-select>
 
-            <b-form-input
-              size="sm"
-              v-if="criteria === 'Precio'"
-              type="number"
-              style="margin: 1vw 1.5vw"
-              v-model="filter.price.number"
-              placeholder="$"
-              @input="filterMethod(criteria)"
-            ></b-form-input>
-          </b-input-group>
-          <b-dropdown-divider></b-dropdown-divider>
-        </b-dropdown-text>
-      </b-dropdown-form>
-    </b-dropdown>
+              <b-form-input
+                size="sm"
+                v-if="criteria === 'Precio'"
+                type="number"
+                style="margin: 1vw 1.5vw"
+                v-model="filter.price.number"
+                placeholder="$"
+                @input="filterMethod(criteria)"
+              ></b-form-input>
+            </b-input-group>
+            <b-dropdown-divider></b-dropdown-divider>
+          </b-dropdown-text>
+        </b-dropdown-form>
+      </b-dropdown>
+    </div>
     <span :key="filter + ' ' + index" v-for="(filter, index) in filters">
       <h5 v-if="filter.name === 'Precio'">
-        {{ filter.name }} {{ filter.method }} ${{ filter.number }}
+        {{ filter.name }} {{ filter.method }} ${{
+          filter.number.replace(".", ",")
+        }}
         <b-icon
           icon="trash"
           style="cursor:pointer;"
@@ -63,7 +70,7 @@
 <script>
   import { mapState } from "vuex";
   import Vue from "vue";
-  import filterItemsVue from "./filterItems.vue";
+
   export default {
     props: ["filtersOpt", "methodOpt", "items", "itemsToShow"],
     data() {
@@ -95,10 +102,12 @@
           ? (this.filter[filterProp].number = "")
           : (this.filter[filterProp] = undefined);
         Vue.delete(this.filters, filter);
+        console.log(this.items);
         this.applyFilters(this.filters);
       },
       filterMethod(criteria) {
         if (criteria === "Precio") {
+          if (this.filter.price.number == (undefined || "")) return false;
           Vue.set(this.filters, criteria, {
             number: this.filter.price.number,
             method: this.filter.price.method,
@@ -118,9 +127,9 @@
           if (key === "Precio") {
             let filteredItems = this.items.filter((item) => {
               return filters[key].method === ">"
-                ? Number(item.precio.replace(/[^0-9]/g, "")) >
+                ? Number(item.precio.replace(/[^0-9&.]/g, "")) >
                     Number(filters[key].number)
-                : Number(item.precio.replace(/[^0-9]/g, "")) <
+                : Number(item.precio.replace(/[^0-9&.]/g, "")) <
                     Number(filters[key].number);
             });
             this.$emit("update:itemsToShow", filteredItems);
@@ -139,20 +148,25 @@
 </script>
 
 <style scoped>
-  div.dropdown {
-    margin: 3vh auto !important;
-    width: 30vw;
+  div.dropdown,
+  button {
+    flex-basis: 30vw;
+    min-width: 200px;
   }
   .buttons-header > * {
-    margin: auto;
-  }
-  #container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    margin: 1.2vh 0 2vh 0;
   }
   h6,
   input[type="datepicker"] {
     margin: 0;
+  }
+  .buttons-header {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-evenly;
+    align-items: center;
+  }
+  #container > span > h5 {
+    margin: 1vh 0;
   }
 </style>

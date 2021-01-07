@@ -217,7 +217,6 @@
               (Number(this.productPrices[element.id]) || 0) +
                 (Number(this.kitPrices[element.id]) || 0)
             );
-            console.log(element.deliveryTime);
             this.items.push({
               id: element.id,
               cliente: element.client,
