@@ -78,8 +78,11 @@ export default new Vuex.Store({
           if (snapshot.val()) {
             for (const key in snapshot.val()) {
               const client = snapshot.val()[key];
+              console.log(client);
               clients.push({
                 name: client.name,
+                notes: client.notes,
+                loc: client.loc,
                 characteristics: {
                   address: client.address,
                   phoneNumber: client.phoneNumber,
@@ -111,6 +114,7 @@ export default new Vuex.Store({
                 characteristics: product.characteristics,
                 id: product.id,
                 sourceMaterials: product.sourceMaterials,
+                profit: product.profit,
               });
               state.products = products;
             }

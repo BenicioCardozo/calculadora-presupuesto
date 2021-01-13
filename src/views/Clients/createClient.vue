@@ -1,95 +1,100 @@
 <template>
   <form @submit.prevent="sendData()" novalidate autocomplete="off">
-    <div id="container">
-      <h2>Crear</h2>
-      <b-input-group>
-        <b-input
-          @input="$v.name.$touch"
-          :style="[
-            $v.name.$error ? { border: '2px solid rgb(255, 36, 36)' } : null,
-          ]"
-          type="text"
-          placeholder="Nombre"
-          v-model="name"
-        ></b-input>
-        <b-input
-          @input="$v.surname.$touch"
-          :style="[
-            $v.surname.$error ? { border: '2px solid rgb(255, 36, 36)' } : null,
-          ]"
-          type="text"
-          v-model="surname"
-          placeholder="Apellido"
-        ></b-input>
-      </b-input-group>
-      <b-input-group>
-        <b-input
-          @input="$v.streetName.$touch"
-          :style="[
-            $v.streetName.$error
-              ? { border: '2px solid rgb(255, 36, 36)' }
-              : null,
-          ]"
-          type="text"
-          placeholder="Calle"
-          v-model="streetName"
-        ></b-input>
-        <b-input
-          @input="$v.streetNumber.$touch"
-          :style="[
-            $v.streetNumber.$error
-              ? { border: '2px solid rgb(255, 36, 36)' }
-              : null,
-          ]"
-          type="number"
-          v-model="streetNumber"
-          placeholder="Altura"
-        ></b-input>
-      </b-input-group>
-      <b-input-group prepend="+54">
-        <b-form-select v-model.number="prefix" style="appearance: none;">
-          <b-form-select-option
-            :value="prefix"
-            v-for="prefix in prefixes"
-            :key="prefix"
-          >
-            {{ prefix }}
-          </b-form-select-option>
-          <b-form-select-option value="Prefijo" selected disabled hidden>
-            Prefijo
-          </b-form-select-option>
-        </b-form-select>
-        <b-input
-          @input="$v.phoneNumber.$touch"
-          :style="[
-            $v.phoneNumber.$error
-              ? { border: '2px solid rgb(255, 36, 36)' }
-              : null,
-          ]"
-          type="number"
-          placeholder="Número de Teléfono"
-          v-model="phoneNumber"
-        ></b-input>
-      </b-input-group>
-
+    <b-input-group>
       <b-input
-        @input="$v.company.$touch"
+        @input="$v.name.$touch"
         :style="[
-          $v.company.$error ? { border: '2px solid rgb(255, 36, 36)' } : null,
+          $v.name.$error ? { border: '2px solid rgb(255, 36, 36)' } : null,
         ]"
         type="text"
-        placeholder="Empresa"
-        v-model="company"
+        placeholder="Nombre"
+        v-model="name"
       ></b-input>
-      <b-button
-        :disabled="isNotValid"
-        pill
-        size="lg"
-        variant="success"
-        type="submit"
-        >Agregar</b-button
-      >
-    </div>
+      <b-input
+        @input="$v.surname.$touch"
+        :style="[
+          $v.surname.$error ? { border: '2px solid rgb(255, 36, 36)' } : null,
+        ]"
+        type="text"
+        v-model="surname"
+        placeholder="Apellido"
+      ></b-input>
+    </b-input-group>
+
+    <b-input-group>
+      <b-input
+        placeholder="Localidad"
+        @input="$v.loc.$touch"
+        :style="[
+          $v.loc.$error ? { border: '2px solid rgb(255, 36, 36)' } : null,
+        ]"
+        type="text"
+        v-model="loc"
+      ></b-input>
+      <b-input
+        @input="$v.streetName.$touch"
+        :style="[
+          $v.streetName.$error
+            ? { border: '2px solid rgb(255, 36, 36)' }
+            : null,
+        ]"
+        type="text"
+        placeholder="Calle"
+        v-model="streetName"
+      ></b-input>
+      <b-input
+        @input="$v.streetNumber.$touch"
+        :style="[
+          $v.streetNumber.$error
+            ? { border: '2px solid rgb(255, 36, 36)' }
+            : null,
+        ]"
+        type="number"
+        v-model="streetNumber"
+        placeholder="Altura"
+      ></b-input>
+    </b-input-group>
+    <b-input-group prepend="+54">
+      <b-form-select v-model.number="prefix" style="appearance: none;">
+        <b-form-select-option
+          :value="prefix"
+          v-for="prefix in prefixes"
+          :key="prefix"
+        >
+          {{ prefix }}
+        </b-form-select-option>
+      </b-form-select>
+      <b-input
+        @input="$v.phoneNumber.$touch"
+        :style="[
+          $v.phoneNumber.$error
+            ? { border: '2px solid rgb(255, 36, 36)' }
+            : null,
+        ]"
+        type="number"
+        placeholder="Número de Teléfono"
+        v-model="phoneNumber"
+      ></b-input>
+    </b-input-group>
+
+    <b-input
+      @input="$v.company.$touch"
+      :style="[
+        $v.company.$error ? { border: '2px solid rgb(255, 36, 36)' } : null,
+      ]"
+      type="text"
+      placeholder="Empresa"
+      v-model="company"
+    ></b-input>
+    <b-textarea v-model="notes" placeholder="Observaciones"> </b-textarea>
+    <b-button
+      :disabled="isNotValid"
+      pill
+      size="lg"
+      variant="success"
+      type="submit"
+      >Agregar</b-button
+    >
   </form>
 </template>
 
@@ -106,13 +111,18 @@
         name: undefined,
         surname: undefined,
         phoneNumber: "",
-        prefix: "Prefijo",
-        prefixes: ["11", "223"],
+        prefix: 11,
+        prefixes: [11, 223],
         company: undefined,
+        loc: undefined,
+        notes: undefined,
       };
     },
     validations: {
       name: {
+        required,
+      },
+      loc: {
         required,
       },
       streetNumber: {
@@ -134,9 +144,7 @@
         required,
       },
     },
-    created() {
-      this.$store.dispatch("setProducts");
-    },
+    created() {},
     computed: {
       isNotValid() {
         return this.$v.$invalid === true || this.prefix === "Prefijo"
@@ -160,10 +168,12 @@
           id: newKey,
           phoneNumber: phoneNumber,
           company: this.company,
+          loc: this.loc,
+          notes: this.notes || "-",
         };
         let updates = {};
         updates[
-          `users/${this.$store.getters["user/userProfile"].uid}/clients/${name}`
+          `users/${this.$store.getters["user/userProfile"].uid}/clients/${newKey}`
         ] = clientData;
         db.ref().update(updates);
         this.$router.push("clientes");
@@ -173,15 +183,15 @@
 </script>
 
 <style scoped>
-  #container {
+  form {
     display: flex;
     flex-direction: column;
-    min-height: 87vh;
+    min-height: 92vh;
     padding-top: 20px;
     justify-content: space-around;
     align-items: center;
   }
-  #container input {
+  form input {
     max-width: 80vw;
   }
   h2 {
@@ -199,9 +209,11 @@
     height: 80vh;
     justify-content: center;
   }
-  .input-group {
+  .input-group,
+  textarea {
     max-width: 80vw;
     align-items: center;
+    max-height: 30vh;
   }
   select {
     max-width: 15vw;

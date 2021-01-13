@@ -1,137 +1,119 @@
 <template>
   <form @submit.prevent="sendData()" novalidate>
     <div id="container" v-if="this.$store.state.sourceMaterials !== undefined">
-      <h2>Crear</h2>
-      <b-input
-        @input="$v.nameProduct.$touch"
-        :style="[
-          $v.nameProduct.$error
-            ? { border: '2px solid rgb(255, 36, 36)' }
-            : { color: 'green' },
-        ]"
-        type="text"
-        size="sm"
-        placeholder="Nombre"
-        v-model="nameProduct"
-      ></b-input>
-      <b-form-select v-model="type" size="sm" class="mt-3"
-        ><b-form-select-option
-          selected
-          disabled
-          hidden
-          value="Tipo de producto"
+      <b-input-group prepend="Nombre" class="mb-2">
+        <b-input
+          @input="$v.nameProduct.$touch"
+          :style="[
+            $v.nameProduct.$error
+              ? { border: '2px solid rgb(255, 36, 36)' }
+              : null,
+          ]"
+          type="text"
+          v-model="nameProduct"
+        ></b-input
+      ></b-input-group>
+
+      <b-input-group prepend="Tipo de Producto">
+        <b-form-select v-model="type" :options="types"> </b-form-select
+      ></b-input-group>
+      <b-input-group prepend="Tamaño" class="mb-2 mt-3">
+        <b-form-select
+          v-model="size"
+          class="select-inside-card"
+          :options="sizes"
         >
-          Tipo de producto
-        </b-form-select-option>
-        <b-form-select-option
-          :value="type"
-          v-bind:key="type + ' ' + index"
-          v-for="(type, index) in types"
+        </b-form-select>
+      </b-input-group>
+      <b-input-group prepend="Color" class="mb-2">
+        <b-form-select
+          v-model="color"
+          class="select-inside-card"
+          :options="colors"
         >
-          {{ type }}
-        </b-form-select-option></b-form-select
+        </b-form-select>
+      </b-input-group>
+      <b-input-group class="mb-2" prepend="Calidad">
+        <b-form-select
+          v-model="quality"
+          class="select-inside-card"
+          :options="qualities"
+        >
+        </b-form-select>
+      </b-input-group>
+      <b-input-group
+        prepend="Margen de Ganancia"
+        :append="
+          `% ${
+            calOfFinalPrice
+              ? `(Precio Final $${calOfFinalPrice.toFixed(2)})`
+              : ''
+          }`
+        "
       >
-      <b-card-group columns class="select-characteristics">
-        <b-card
-          header="Color"
-          header-tag="h4"
-          border-variant="info"
-          align="center"
+        <b-input
+          v-model.number="profit"
+          class="select-inside-card"
+          type="number"
         >
-          <b-form-select
-            v-model="color"
-            size="sm"
-            class="select-inside-card"
-            :options="colors"
-          >
-          </b-form-select>
-        </b-card>
-        <b-card
-          header="Tamaño"
-          header-tag="h4"
-          border-variant="info"
-          align="center"
-        >
-          <b-form-select
-            v-model="size"
-            class="select-inside-card"
-            :options="sizes"
-            size="sm"
-          >
-          </b-form-select>
-        </b-card>
-        <b-card
-          header="Calidad"
-          header-tag="h4"
-          border-variant="info"
-          align="center"
-        >
-          <b-form-select
-            v-model="quality"
-            class="select-inside-card"
-            :options="qualities"
-            size="sm"
-          >
-          </b-form-select>
-        </b-card>
-      </b-card-group>
-      <h4 style="font-weight: 500;">Materias Primas que Lleva</h4>
-      <b-form-select size="sm" v-model="sourceMaterial">
+        </b-input>
+      </b-input-group>
+      <h5 class="mt-4">
+        Materias Primas que Lleva
+      </h5>
+      <b-form-select
+        :options="sourceMaterialsFiltered"
+        v-model="sourceMaterial"
+        class="mb-3"
+      >
         <b-form-select-option selected disabled hidden value="Nombre">
           Nombre
         </b-form-select-option>
-        <b-form-select-option
-          :value="sourceMaterial.name"
-          v-bind:key="sourceMaterial + ' ' + index"
-          v-for="(sourceMaterial, index) in this.$store.state.sourceMaterials"
-        >
-          {{ sourceMaterial.name }}
-        </b-form-select-option>
       </b-form-select>
-      <span id="quantity-and-dropdown">
+      <b-input-group
+        class="mb-3"
+        :append="unitOfSourceMaterial ? `Por ${unitOfSourceMaterial}` : null"
+      >
         <b-input
           v-model="howMuch"
-          size="sm"
           type="number"
           placeholder="Cantidad de Materia Prima"
         ></b-input>
-      </span>
-      <span
-        v-if="Object.keys(sourceMaterials).length !== 0"
-        style="display:flex; justify-content: space-around;width:80vw;"
-      >
-        <h5
-          :key="sourceMaterial + ' ' + index"
-          v-for="(sourceMaterial, index) in sourceMaterials"
-        >
-          {{
-            `${sourceMaterial.name}  ${
-              sourceMaterial.howMuch
-            } ${sourceMaterial.measurementUnit ||
-              unitOfSourceMaterial.toLowerCase()}${plural(sourceMaterial)}`
-          }}
-          <b-icon
-            style="cursor:pointer;"
-            icon="trash"
-            scale="1.1"
-            @click.stop="deleteSourceMaterial(sourceMaterial.name)"
-          >
-          </b-icon>
-        </h5>
-      </span>
+      </b-input-group>
       <b-button
-        :disabled="!howMuch || !sourceMaterial"
-        size="sm"
+        :disabled="!howMuch || sourceMaterial === 'Nombre'"
         variant="info"
         @click="pushSourceMaterial()"
         >Agregar Materia Prima</b-button
       >
-
+      <b-table responsive :items="sourceMaterialsListWithDropdown" caption-top>
+        <template #head(name)>Nombre</template>
+        <template #head(howMuch)>Cantidad</template>
+        <template #head(measurementUnit)>Unidad de Medida</template>
+        <template #head(opts)> {{ `` }}</template>
+        <template #cell(howMuch)="data">
+          <b-input
+            @input="updQuantity($event, data.item.name)"
+            :value="data.value.toLocaleString('es-AR')"
+          ></b-input>
+        </template>
+        <template #cell(opts)="data">
+          {{ data.value }}
+          <b-icon
+            style="cursor:pointer;"
+            icon="trash"
+            scale="1.2"
+            @click.stop="deleteSourceMaterial(data.item.name)"
+          >
+          </b-icon
+        ></template>
+      </b-table>
       <b-button
         pill
         size="lg"
         variant="success"
         type="submit"
+        class="mb-2"
         :disabled="
           $v.$invalid === true || Object.keys(sourceMaterials).length === 0
         "
@@ -174,7 +156,10 @@
         quality: undefined,
         type: "Tipo de producto",
         types: ["Sss", "Aaaa"],
-        unitOfSourceMaterial: "No seleccionaste un nombre",
+        unitOfSourceMaterial: null,
+        sourceMaterialMeasurementUnit: null,
+        profit: undefined,
+        finalPrice: undefined,
       };
     },
     validations: {
@@ -194,17 +179,62 @@
         required,
       },
     },
-    beforeCreate() {
+    created() {
       this.$store.dispatch("setSourceMaterials");
     },
-    created() {},
-    methods: {
-      plural(sourceMaterial) {
-        let result =
-          this.sourceMaterials[sourceMaterial.name].measurementUnit === "Unidad"
-            ? "es"
-            : "s";
+    computed: {
+      calOfFinalPrice() {
+        // 100% + margen% === precio final
+        // costo === 100%
+        if (!this.profit || Object.keys(this.sourceMaterials) < 1) return false;
+        let prices = [];
+        for (const iterator of Object.values(this.sourceMaterials)) {
+          let price_query = db
+            .ref(
+              `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${iterator.name}/price/amount`
+            )
+            .once("value", (snap) => {
+              prices.push(
+                snap.val() * this.sourceMaterials[iterator.name].howMuch
+              );
+            });
+        }
+        console.log(
+          prices.reduce((a, b) => a + b, 0),
+          prices
+        );
+        let equation =
+          (1 + this.profit / 100) * prices.reduce((a, b) => a + b, 0);
+        console.log(equation);
+        return equation;
+      },
+      sourceMaterialsListWithDropdown() {
+        let result = [];
+        for (const iterator of Object.values(this.sourceMaterials)) {
+          result.push({ ...iterator, opts: "" });
+        }
         return result;
+      },
+      sourceMaterialsFiltered() {
+        let merge = this.$store.state.sourceMaterials
+          .map((el) => el.name)
+          .concat(Object.keys(this.sourceMaterials));
+        let duplicates = merge.filter(
+          (item, index) => merge.indexOf(item) != index
+        );
+        let mergeUnique = [...new Set(merge)];
+        return mergeUnique.filter((el) => !duplicates.includes(el));
+      },
+    },
+    methods: {
+      async updQuantity(newQuantity, sourceMaterialName) {
+        if (!newQuantity || newQuantity === 0) {
+          Vue.delete(this.sourceMaterials, sourceMaterialName);
+        } else {
+          this.sourceMaterials[sourceMaterialName].howMuch = Number(
+            newQuantity.replace(",", ".")
+          );
+        }
       },
       sendData() {
         this.$v.$touch();
@@ -225,6 +255,7 @@
               size: this.size,
               quality: this.quality,
             },
+            profit: this.profit,
             id: newKey,
           };
           console.dir(productData);
@@ -244,11 +275,12 @@
         ) {
           this.$set(this.sourceMaterials, this.sourceMaterial, {
             name: this.sourceMaterial,
-            howMuch: Number(this.howMuch),
+            howMuch: Number(this.howMuch.replace(",", ".")),
             measurementUnit: this.unitOfSourceMaterial,
           });
           this.howMuch = "";
-          this.sourceMaterial = "";
+          this.sourceMaterial = "Nombre";
+          this.unitOfSourceMaterial = null;
         }
       },
       deleteSourceMaterial(name) {
@@ -270,7 +302,6 @@
         immediate: true,
       },
     },
-    computed: {},
   };
 </script>
 
@@ -279,51 +310,25 @@
     display: flex;
     flex-direction: column;
     padding-top: 20px;
-    min-height: 90vh;
+    min-height: 92.3vh;
     justify-content: space-around;
     align-items: center;
   }
-  #container > input,
-  #container > input {
-    width: 80vw;
-  }
-  #container > select {
-    margin-bottom: 2vh;
-  }
-  h2 {
-    font-weight: 500;
-    font-size: 2.4em;
-  }
-  #quantity-and-dropdown {
-    display: inline-flex;
-    align-items: center;
-    width: 80vw;
-  }
-  #select-placeholder {
-    color: #fff;
-  }
-  div > h4,
-  div > span,
-  div > input {
-    margin: 5px;
-  }
+
   form > span {
     display: flex;
     align-items: center;
     height: 85vh;
     justify-content: center;
   }
-  #container > h4,
-  button[type="submit"] {
-    margin: 3vh;
-  }
-  .select-characteristics {
+
+  .input-group {
     width: 80vw;
-  }
-  .select-inside-card {
-    width: 100%;
   }
   select {
     width: 80vw;
+  }
+  * {
+    text-align: center;
   }
 </style>

@@ -1,136 +1,155 @@
 <template>
-  <div id="container">
-    <h1>{{ name }}</h1>
-    <b-card-group columns>
-      <b-card
-        header="Color"
-        header-tag="h3"
-        border-variant="info"
-        align="center"
+  <b-form novalidate>
+    <b-input-group class="mb-3" prepend="Nombre">
+      <b-form-input v-model="name"> </b-form-input>
+    </b-input-group>
+    <b-input-group class="mb-3" prepend="Tipo">
+      <b-form-select :options="sourceMaterialsNames" v-model="type">
+      </b-form-select>
+    </b-input-group>
+    <b-input-group class="mb-3" prepend="Proveedor">
+      <b-form-input v-model="supplier"> </b-form-input>
+    </b-input-group>
+    <b-input-group class="mb-3" prepend="Color">
+      <b-form-select v-model="color" :options="colors"> </b-form-select>
+    </b-input-group>
+    <b-input-group class="mb-3" prepend="Calidad">
+      <b-form-select v-model="quality" :options="qualities"> </b-form-select>
+    </b-input-group>
+    <b-input-group prepend="$">
+      <b-form-input
+        v-model.number="price.amount"
+        placeholder="Costo"
+        type="number"
+      ></b-form-input>
+      <b-dropdown
+        style="margin: 0 20px"
+        text="Unidad de Medida"
+        variant="primary"
       >
-        <b-form-select
-          v-model="characteristics.color"
-          :options="colors"
-        ></b-form-select>
-      </b-card>
-      <!-- I didn't include the measurement unit field because that won't change very often -->
-      <b-card
-        header="Calidad"
-        header-tag="h3"
-        border-variant="info"
-        align="center"
-      >
-        <b-form-select
-          v-model="characteristics.quality"
-          :options="qualities"
-        ></b-form-select>
-      </b-card>
-      <b-card
-        header="Precio"
-        header-tag="h3"
-        border-variant="info"
-        align="center"
-      >
-        <b-input-group prepend="$">
-          <b-input v-model="price.amount" type="number"></b-input>
-        </b-input-group>
-      </b-card>
-    </b-card-group>
-    <b-card-group deck>
-      <b-card
-        header="Proveedor"
-        header-tag="h3"
-        border-variant="info"
-        align="center"
-      >
-        <b-input-group>
-          <b-input v-model="characteristics.supplier" type="text"></b-input>
-        </b-input-group>
-      </b-card>
-    </b-card-group>
-  </div>
+        <b-dropdown-item @click="price.measurementUnit = 'Metro'"
+          >Metro</b-dropdown-item
+        >
+        <b-dropdown-item @click="price.measurementUnit = 'Unidad'"
+          >Unidad</b-dropdown-item
+        >
+      </b-dropdown>
+    </b-input-group>
+    <b-button
+      :disabled="isFormValid === false"
+      variant="success"
+      size="lg"
+      pill
+      @click.prevent="sendData()"
+      type="submit"
+    >
+      Guardar
+    </b-button>
+  </b-form>
 </template>
 
 <script>
-  import { db } from "../../firebase/firebase.js";
-
+  import { db } from "../../firebase/firebase";
   export default {
     data() {
       return {
-        name: undefined,
-        price: 0,
+        name: null,
+        color: null,
+        quality: null,
+        type: null,
+        supplier: null,
+        price: {
+          amount: undefined,
+          measurementUnit: undefined,
+        },
+        sourceMaterialsNames: [
+          "Linón",
+          "Tela Puntillé",
+          "Lienzo",
+          "Cinta PP",
+          "Cierre",
+          "Etiquetas",
+          "Bagún",
+          "Cristal",
+          "Deslizadores",
+          "Gabardina",
+          "Mano de Obra",
+        ],
         qualities: ["Alta", "Media", "Baja"],
         colors: ["Beige", "Azul", "Blanco"],
-        price: undefined,
-        characteristics: {
-          color: undefined,
-          quality: undefined,
-          supplier: undefined,
-        },
       };
     },
-    created() {
-      if (!this.$store.state.nameOfActualItem) return false;
-      db.ref(
-        `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${this.$store.state.nameOfActualItem}`
-      ).on("value", (snapshot) => {
-        this.name = snapshot.val().name;
+    async created() {
+      let req = await db
+        .ref(
+          `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${this.$store.state.nameOfActualItem}`
+        )
+        .once("value");
+      let res = await req.val();
 
-        this.price = snapshot.val().price;
-
-        this.characteristics = snapshot.val().characteristics;
-      });
+      this.name = res.name;
+      this.color = res.characteristics.color;
+      this.type = res.characteristics.type;
+      this.supplier = res.characteristics.supplier;
+      this.quality = res.characteristics.quality;
+      this.price.measurementUnit = res.price.measurementUnit;
+      this.price.amount = res.price.amount;
     },
-
-    watch: {
-      price: {
-        handler(newPrice) {
-          db.ref(
-            `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${this.name}/price`
-          ).set(newPrice);
-        },
-        deep: true,
+    computed: {
+      isFormValid() {
+        if (
+          this.name &&
+          this.price.measurementUnit != undefined &&
+          this.price.amount !== (undefined || "") &&
+          this.supplier != ""
+        ) {
+          return true;
+        } else {
+          return false;
+        }
       },
-      characteristics: {
-        handler(newCharacteristics) {
-          db.ref(
-            `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${this.name}/characteristics`
-          ).set(newCharacteristics);
-        },
-        deep: true,
+    },
+    methods: {
+      sendData() {
+        let newKey = db
+          .ref()
+          .child("sourceMaterials")
+          .push().key;
+
+        let sourceMaterialData = {
+          name: this.name,
+          characteristics: {
+            color: this.color,
+            quality: this.quality,
+            type: this.type,
+            supplier: this.supplier,
+          },
+          id: newKey,
+          price: this.price,
+        };
+
+        let updates = {};
+        updates[
+          `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${this.$store.state.nameOfActualItem}`
+        ] = sourceMaterialData;
+
+        db.ref().update(updates);
+
+        this.$router.push("materias-primas");
       },
     },
   };
 </script>
 
 <style scoped>
-  /* div > h3 {
-  	font-weight: 700;
-  	font-size: 2.4em;
+  form {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    min-height: 90vh;
   }
-  div > h3 {
-  	font-size: 2em;
-  } */
-  @media screen and (min-width: 576px) {
-    .card-columns {
-      margin: 10vh 5vh 10vh !important;
-    }
-  }
-
-  h1 {
-    margin: 0 0 8vh 0;
-  }
-
-  input {
-    text-align: center;
-    font-weight: 500;
-    width: 100%;
-  }
-  #container * {
-    text-align: center;
-    max-width: 100%;
-  }
-  .card-deck {
-    margin: auto;
+  .input-group {
+    width: 90% !important;
   }
 </style>

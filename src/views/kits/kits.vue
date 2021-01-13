@@ -16,7 +16,7 @@
             price: ['<', '>'],
           }"
           @setItems="setItems"
-          :filtersOpt="['Precio']"
+          :filtersOpt="[{ type: 'Precio', name: 'Precio' }]"
           :items.sync="items"
           :itemsToShow.sync="itemsToShow"
         >

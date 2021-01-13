@@ -1,8 +1,8 @@
 <template>
   <main>
-    <h1>Iniciar Sesión</h1>
+    <h2>Iniciar Sesión</h2>
 
-    <b-button size="lg" variant="outline-primary" @click="login">
+    <b-button variant="outline-primary" @click="login">
       <svg
         data-v-41be6633=""
         viewBox="0 0 16 16"
@@ -38,14 +38,24 @@
 
 <style scoped>
   main {
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
-    justify-content: space-evenly;
-    min-height: 40vh;
+    min-height: 50vh;
+    min-width: 30vw;
     align-items: center;
+    box-shadow: 1em 1em 1em 1em rgba(0, 0, 0, 0.096);
   }
   button {
-    min-width: 70%;
+    min-width: 80%;
     font-weight: 700;
+    margin: 10vh;
+  }
+
+  main h2 {
+    margin: 5vh 0;
   }
 </style>

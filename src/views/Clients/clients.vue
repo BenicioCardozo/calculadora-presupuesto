@@ -1,71 +1,91 @@
 <template>
   <div>
     <h1>Clientes</h1>
-    <div class="buttons-header">
-      <b-button
-        variant="primary"
-        style="margin: 2vh 5vh;"
-        size="lg"
-        @click="$router.push('crear-cliente')"
-      >
-        Crear<b-icon icon="plus" aria-hidden="true"></b-icon
-      ></b-button>
-    </div>
-    <b-table striped hover responsive="sm" :items="itemsToShow" v-if="clients">
-      <template #cell(nombre)="data">
-        <b-td class="text-primary" style="white-space:nowrap;"
-          >{{ data.value }}
-          <b-dropdown variant="white" no-caret>
-            <template #button-content>
-              <b-icon
-                scale="0.9"
-                icon="three-dots-vertical"
-                aria-hidden="true"
-              ></b-icon>
-            </template>
-            <b-dropdown-item-button
-              @click.stop="editClient(data.value)"
-              tabindex="-1"
-              variant="info"
-            >
-              <b-icon icon="pencil" aria-hidden="true"></b-icon>
-              Editar
-            </b-dropdown-item-button>
-            <b-dropdown-divider></b-dropdown-divider>
-            <b-dropdown-item-button
-              variant="danger"
-              @click.stop="deleteClient(data.value)"
-            >
-              <b-icon icon="trash-fill" aria-hidden="true"></b-icon>
-              Eliminar
-            </b-dropdown-item-button>
-          </b-dropdown></b-td
-        >
-      </template></b-table
-    >
+    <filterItems
+      :methodOpt="{
+        types: this.allLocations,
+      }"
+      @setItems="setItems"
+      :filtersOpt="[
+        {
+          type: 'Tipo',
+          name: 'Localidad',
+          propToCompare: 'localidad',
+        },
+      ]"
+      :items.sync="items"
+      :itemsToShow.sync="itemsToShow"
+      action="/crear-cliente"
+    ></filterItems>
+    <b-table hover responsive :items="itemsToShow" v-if="clients">
+      <template #head(opt)> {{ "" }}</template>
+      <template #cell(ID)="data">
+        <b-td class="text-primary">
+          {{ data.value.substring(13) }}
+        </b-td>
+      </template>
+      <template #cell(opt)="data">
+        <b-dropdown right variant="white" no-caret>
+          <template #button-content>
+            <b-icon
+              scale="1.1"
+              icon="three-dots-vertical"
+              aria-hidden="true"
+            ></b-icon>
+          </template>
+          <b-dropdown-item-button
+            @click.stop="editClient(data)"
+            tabindex="-1"
+            variant="info"
+          >
+            <b-icon icon="pencil" aria-hidden="true"></b-icon>
+            Editar
+          </b-dropdown-item-button>
+          <b-dropdown-divider></b-dropdown-divider>
+          <b-dropdown-item-button
+            variant="danger"
+            @click.stop="deleteClient(data)"
+          >
+            <b-icon icon="trash-fill" aria-hidden="true"></b-icon>
+            Eliminar
+          </b-dropdown-item-button>
+        </b-dropdown>
+      </template>
+    </b-table>
   </div>
 </template>
 
 <script>
   import { db } from "../../firebase/firebase.js";
   import { mapState } from "vuex";
+  import filterItems from "../../components/filterItems";
   import Vue from "vue";
 
   export default {
     name: "clients",
+    components: {
+      filterItems,
+    },
     data() {
       return {
         hover: "rgb(0, 123, 255)",
         items: [],
         itemsToShow: [],
-        companies: [],
       };
     },
     created() {
       this.$store.dispatch("setClients");
+      this.setItems(this.clients);
     },
     computed: {
       ...mapState(["clients"]),
+      allLocations() {
+        let result = [];
+        this.items.forEach((el) => {
+          result.push(el.localidad);
+        });
+        return result;
+      },
     },
     watch: {
       clients: {
@@ -79,23 +99,29 @@
       setItems(itemsWithoutFormat) {
         this.items = [];
         if (!itemsWithoutFormat) return false;
-        itemsWithoutFormat.forEach(async (element) => {
+        itemsWithoutFormat.forEach((element) => {
+          if (!element.characteristics.id) return false;
           this.items.push({
+            ID: element.characteristics.id,
             nombre: element.name,
+            localidad: element.loc,
             dirección: element.characteristics.address,
-            número_de_teléfono: element.characteristics.phoneNumber,
             empresa: element.characteristics.company,
+            número_de_teléfono: element.characteristics.phoneNumber,
+            notas: element.notes,
+            opt: "",
           });
           this.itemsToShow = this.items;
         });
       },
       deleteClient(name) {
         db.ref(
-          `users/${this.$store.getters["user/userProfile"].uid}/clients/${name}`
+          `users/${this.$store.getters["user/userProfile"].uid}/clients/${name.item.id}`
         ).remove();
       },
       editClient(name) {
-        this.$store.commit("changeName", name);
+        console.log(name.item.ID);
+        this.$store.commit("changeName", name.item.ID);
         this.$router.push("ver-cliente");
       },
     },

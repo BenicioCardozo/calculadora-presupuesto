@@ -1,7 +1,7 @@
 <template>
   <div id="container">
     <div class="buttons-header">
-      <b-button variant="primary" @click="$router.push('crear-producto')">
+      <b-button variant="primary" @click="$router.push(action)">
         Crear&nbsp;<b-icon icon="plus" aria-hidden="true"></b-icon
       ></b-button>
       <b-dropdown text="Filtrar">
@@ -10,9 +10,9 @@
             :key="criteria + ' ' + index"
             v-for="(criteria, index) in filtersOpt"
           >
-            <h6>Por {{ criteria }}</h6>
+            <h6>Por {{ criteria.name }}</h6>
             <b-input-group style="display: flex; align-items: center">
-              <template v-if="criteria === 'Precio'" #prepend>
+              <template v-if="criteria.type === 'Precio'" #prepend>
                 <b-form-select
                   size="sm"
                   v-model="filter.price.method"
@@ -21,9 +21,9 @@
                 </b-form-select>
               </template>
               <b-form-select
-                v-else-if="criteria === 'Tipo'"
+                v-else-if="criteria.type === 'Tipo'"
                 size="sm"
-                @change="filterMethod(criteria)"
+                @change="filterMethod(criteria.type)"
                 v-model="filter.type"
                 :options="methodOpt.types"
               >
@@ -31,12 +31,12 @@
 
               <b-form-input
                 size="sm"
-                v-if="criteria === 'Precio'"
+                v-if="criteria.type === 'Precio'"
                 type="number"
                 style="margin: 1vw 1.5vw"
                 v-model="filter.price.number"
                 placeholder="$"
-                @input="filterMethod(criteria)"
+                @input="filterMethod(criteria.type)"
               ></b-form-input>
             </b-input-group>
             <b-dropdown-divider></b-dropdown-divider>
@@ -47,7 +47,7 @@
     <span :key="filter + ' ' + index" v-for="(filter, index) in filters">
       <h5 v-if="filter.name === 'Precio'">
         {{ filter.name }} {{ filter.method }} ${{
-          filter.number.replace(".", ",")
+          Number(filter.number).toLocaleString("es-AR")
         }}
         <b-icon
           icon="trash"
@@ -56,7 +56,7 @@
         ></b-icon>
       </h5>
       <h5 v-else-if="filter.type">
-        {{ filter.type }}s
+        {{ filter.type }}
         <b-icon
           icon="trash"
           style="cursor:pointer;"
@@ -72,7 +72,7 @@
   import Vue from "vue";
 
   export default {
-    props: ["filtersOpt", "methodOpt", "items", "itemsToShow"],
+    props: ["filtersOpt", "methodOpt", "items", "itemsToShow", "action"],
     data() {
       return {
         filters: {},
@@ -102,7 +102,6 @@
           ? (this.filter[filterProp].number = "")
           : (this.filter[filterProp] = undefined);
         Vue.delete(this.filters, filter);
-        console.log(this.items);
         this.applyFilters(this.filters);
       },
       filterMethod(criteria) {
@@ -133,13 +132,16 @@
                     Number(filters[key].number);
             });
             this.$emit("update:itemsToShow", filteredItems);
-          } else if (filters[key].type) {
+          } else if (key === "Tipo") {
             let filteredItems = this.items.filter((item) => {
-              return item.tipo === filters[key].type;
+              return (
+                item[
+                  this.filtersOpt.find((el) => el.type === "Tipo")
+                    .propToCompare || "tipo"
+                ] === filters[key].type
+              );
             });
             this.$emit("update:itemsToShow", filteredItems);
-          } else {
-            return this.$emit("update:itemsToShow", this.items);
           }
         }
       },
@@ -168,5 +170,8 @@
   }
   #container > span > h5 {
     margin: 1vh 0;
+  }
+  h6 {
+    margin: 0 0 2vh;
   }
 </style>
