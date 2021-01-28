@@ -21,7 +21,7 @@
         }"
         @setItems="setItems"
         :filtersOpt="[
-          { type: 'Precio', name: 'Precio' },
+          { type: 'Precio', name: 'Costo' },
           { name: 'Tipo', type: 'Tipo' },
         ]"
         :items.sync="items"

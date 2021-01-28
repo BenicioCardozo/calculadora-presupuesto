@@ -2,31 +2,29 @@
   <div>
     <h1>Pedidos</h1>
     <div>
-      <div class="buttons-header">
-        <b-button
-          variant="primary"
-          style="margin: 2vh 5vh;"
-          size="lg"
-          @click="$router.push('crear-pedido')"
-        >
-          Crear<b-icon icon="plus" aria-hidden="true"></b-icon
-        ></b-button>
-        <filterItems
-          :methodOpt="{
-            price: ['<', '>'],
-          }"
-          @setItems="setItems"
-          :filtersOpt="['Precio']"
-          :items.sync="items"
-          :itemsToShow.sync="itemsToShow"
-        >
-        </filterItems>
-      </div>
+      <filterItems
+        :methodOpt="{
+          price: ['<', '>'],
+        }"
+        @setItems="setItems"
+        :filtersOpt="[{ type: 'Precio', name: 'Precio' }]"
+        :items.sync="items"
+        :itemsToShow.sync="itemsToShow"
+        action="/crear-pedido"
+      >
+      </filterItems>
 
-      <b-table striped hover responsive="md" :items="itemsToShow" v-if="orders">
-        <template #head(precio)>
-          <span>Precio Final</span>
+      <b-table responsive hover :items="itemsToShow" v-if="orders">
+        <template #cell(precio)="data">{{
+          "$" +
+            Number(data.value.replace(/[^0-9&.]/g, "")).toLocaleString("es-AR")
+        }}</template>
+        <template #cell(ID)="data">
+          <b-td class="text-primary" style="white-space:nowrap;"
+            >{{ data.value.substr(13) }}
+          </b-td>
         </template>
+        <template #head(opt)>{{ `` }}</template>
         <template #cell(kits)="data">
           <span v-html="data.value"></span>
         </template>
@@ -44,37 +42,41 @@
             data.value.substring(0, data.value.lastIndexOf("de"))
           }}</span>
         </template>
-        <template #cell(id)="data">
-          <b-td class="text-primary" style="white-space:nowrap;"
-            >{{ data.value.substr(13) }}
-            <b-dropdown variant="white" no-caret>
-              <template #button-content>
-                <b-icon
-                  scale="0.9"
-                  icon="three-dots-vertical"
-                  aria-hidden="true"
-                ></b-icon>
-              </template>
-              <b-dropdown-item-button
-                @click.stop="editOrder(data.item.id)"
-                tabindex="-1"
-                variant="info"
-              >
-                <b-icon icon="pencil" aria-hidden="true"></b-icon>
-                Editar
-              </b-dropdown-item-button>
+        <template #cell(opt)="data"
+          ><b-dropdown right style="max-width:100%;" variant="white" no-caret>
+            <template #button-content>
+              <b-icon
+                scale="1.1"
+                icon="three-dots-vertical"
+                aria-hidden="true"
+              ></b-icon>
+            </template>
+            <b-dropdown-item-button
+              @click.stop="editOrder(data.item.ID)"
+              tabindex="-1"
+              variant="info"
+            >
+              <b-icon icon="pencil"></b-icon>
+              Editar
+            </b-dropdown-item-button>
+            <div
+              v-if="
+                itemsToShow.find((el) => el.ID === data.item.ID).status !==
+                  'Entregado'
+              "
+            >
               <b-dropdown-divider></b-dropdown-divider>
               <b-dropdown-item-button
-                variant="danger"
-                @click.stop="deleteOrder(data.item.id)"
+                variant="success"
+                @click.stop="changeStatus(data.item.ID)"
               >
-                <b-icon icon="trash-fill" aria-hidden="true"></b-icon>
-                Eliminar
+                <b-icon icon="journal-check"></b-icon>
+                Cambiar status
               </b-dropdown-item-button>
-            </b-dropdown></b-td
-          >
-        </template></b-table
-      >
+            </div>
+          </b-dropdown>
+        </template>
+      </b-table>
     </div>
   </div>
 </template>
@@ -83,8 +85,6 @@
   import { db } from "../../firebase/firebase.js";
   import { mapState } from "vuex";
   import filterItems from "../../components/filterItems";
-  import Vue from "vue";
-
   export default {
     name: "orders",
     components: { filterItems },
@@ -95,6 +95,20 @@
         prices: {},
         kitPrices: {},
         productPrices: {},
+        months: {
+          enero: "01",
+          febrero: "02",
+          marzo: "03",
+          abril: "04",
+          mayo: "05",
+          junio: "06",
+          julio: "07",
+          agosto: "08",
+          septiembre: "09",
+          octubre: "10",
+          noviembre: "11",
+          diciembre: "12",
+        },
       };
     },
     created() {
@@ -147,65 +161,27 @@
       },
     },
     watch: {
-      orders: {
-        async handler(newVal, oldVal) {
-          let result = {};
-          let productsPrices = {};
-          let kitsPrices = {};
-          //Orders
-          for (const order of newVal) {
-            let kits = order.kits;
-            let products = order.products;
-            //Kits
-            if (kits) {
-              for (const iterator in kits) {
-                let prices = [];
-                let kitQuantity = await db
-                  .ref(
-                    `users/${this.$store.getters["user/userProfile"].uid}/orders/${order.id}/kits/${iterator}/quantity`
-                  )
-                  .once("value");
-                let productsOfKit = await db
-                  .ref(
-                    `users/${this.$store.getters["user/userProfile"].uid}/kits/${iterator}/products`
-                  )
-                  .once("value");
-                for (const key in productsOfKit.val()) {
-                  let product = productsOfKit.val()[key];
-                  let priceOfProduct =
-                    (await this.$store.dispatch(
-                      "setProductPrice",
-                      product.name
-                    )) * product.quantity;
-                  prices.push(priceOfProduct);
-                  let finalPrice = prices.reduce((a, b) => a + b, 0) || 0;
-                  kitsPrices[order.id] = finalPrice * kitQuantity.val();
-                }
-              }
-            }
-            if (products) {
-              for (const key in products) {
-                let prices = [];
-                let product = products[key];
-                let priceOfProduct =
-                  (await this.$store.dispatch(
-                    "setProductPrice",
-                    product.name
-                  )) * product.quantity;
-                prices.push(priceOfProduct);
-                let finalPrice = prices.reduce((a, b) => a + b, 0) || 0;
-                productsPrices[order.id] = finalPrice;
-              }
-            }
-          }
-          this.kitPrices = kitsPrices;
-          this.productPrices = productsPrices;
-          this.setItems(newVal);
-        },
-        deep: true,
+      orders() {
+        this.setItems();
       },
     },
     methods: {
+      isItDelayed(date) {
+        let parts = date.trim().split(" ");
+        const today = new Date().getTime(); //YYYY-MM-DD
+        const date_ms = new Date(
+          `${parts[4]}-${this.months[parts[2]]}-${Number(parts[0]) + 1}`
+        ).getTime();
+        return today > date_ms ? true : false;
+      },
+      async changeStatus(id) {
+        await db
+          .ref(
+            `users/${this.$store.getters["user/userProfile"].uid}/orders/${id}/status`
+          )
+          .set("Entregado");
+        this.itemsToShow.find((el) => el.ID === id).status = "Entregado";
+      },
       async setItems() {
         let texts = await this.productAndKitsText;
         this.items = [];
@@ -213,19 +189,29 @@
         if (itemsWithoutFormat) {
           itemsWithoutFormat.forEach(async (element) => {
             if (!element.id) return false;
-            let price = Number(
-              (Number(this.productPrices[element.id]) || 0) +
-                (Number(this.kitPrices[element.id]) || 0)
-            );
+            element.deliveryTime = `${Number(
+              element.deliveryTime.split(" ")[0]
+            ) + 1} de ${element.deliveryTime.split(" ")[2]} de ${
+              element.deliveryTime.split(" ")[4]
+            }
+              `;
             this.items.push({
-              id: element.id,
+              ID: element.id,
               cliente: element.client,
               productos: texts[element.id].products || "-",
               kits: texts[element.id].kits || "-",
               importancia: element.importance,
               fecha_de_creación: element.createdAt,
               fecha_de_entrega: element.deliveryTime,
-              precio: `$${price.toLocaleString("es-AR")}`,
+              precio: `$${element.price}`,
+              status: element.status,
+              opt: undefined,
+              _rowVariant:
+                element.status === "Entregado"
+                  ? "success"
+                  : this.isItDelayed(element.deliveryTime)
+                  ? "danger"
+                  : null,
             });
             this.itemsToShow = this.items;
           });

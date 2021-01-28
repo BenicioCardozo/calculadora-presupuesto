@@ -1,78 +1,95 @@
 <template>
   <form @submit.prevent="sendData()" novalidate>
-    <div id="container" v-if="this.$store.state.products !== undefined">
-      <h2>Crear</h2>
+    <b-input-group prepend="Nombre del Kit">
       <b-input
         @input="$v.nameKit.$touch"
         :style="[
           $v.nameKit.$error ? { border: '2px solid rgb(255, 36, 36)' } : null,
         ]"
         type="text"
-        placeholder="Nombre"
         v-model="nameKit"
-      ></b-input>
-      <h4 style="font-weight: 500;">Productos</h4>
-      <b-form-select ref="sourceMaterialSelector" v-model="product">
-        <b-form-select-option selected disabled hidden value="Nombre">
-          Nombre
-        </b-form-select-option>
-        <b-form-select-option
-          :value="product.name"
-          v-bind:key="product + ' ' + index"
-          v-for="(product, index) in this.$store.state.products"
-        >
-          {{ product.name }}
-        </b-form-select-option>
-      </b-form-select>
-      <b-input
-        type="number"
-        placeholder="Cantidad"
-        v-model="quantity"
-      ></b-input>
-      <span
-        v-if="Object.keys(products).length !== 0"
-        style="display:flex; justify-content: space-around;width:80vw;"
+        class="mb-3"
+      ></b-input
+    ></b-input-group>
+    <div class="products-form">
+      <h3 class="mb-4 mt-3">Productos</h3>
+      <b-input-group class="mb-4" prepend="Nombre del Producto">
+        <b-form-select :options="filteredProducts" v-model="product">
+          <b-form-select-option
+            selected
+            disabled
+            hidden
+            value="Nombre del Producto"
+          >
+            Nombre del Producto
+          </b-form-select-option>
+        </b-form-select>
+      </b-input-group>
+      <b-input-group
+        class="mb-4"
+        :prepend="`Cantidad ${product ? `de ${product}` : ''}`"
       >
-        <h5 :key="product + ' ' + index" v-for="(product, index) in products">
-          {{ `${product.name}  ${product.quantity} ` }}
+        <b-input type="number" v-model="quantity"></b-input>
+      </b-input-group>
+      <b-button
+        :disabled="!quantity || !product"
+        variant="info"
+        @click="pushProduct()"
+        class="mb-4"
+        >Agregar Producto</b-button
+      >
+      <b-table
+        class="mb-3"
+        responsive
+        :items="productsWithDropdown"
+        caption-top
+      >
+        <template #head(name)>Nombre</template>
+        <template #head(quantity)>Cantidad</template>
+        <template #head(opts)> {{ `` }}</template>
+        <template #cell(quantity)="data">
+          <b-input
+            @input="updQuantity($event, data.item.name)"
+            :value="data.value.toLocaleString('es-AR')"
+          ></b-input>
+        </template>
+        <template #cell(opts)="data">
+          {{ data.value }}
           <b-icon
             style="cursor:pointer;"
             icon="trash"
-            scale="1.1"
-            @click.stop="deleteProduct(product.name)"
+            scale="1.2"
+            @click.stop="deleteProduct(data.item.name)"
           >
-          </b-icon>
+          </b-icon
+        ></template>
+      </b-table>
+      <b-card v-if="kitInfo" class="mb-3">
+        <h5>
+          Ganancia:
+          {{ "$" + Number(kitInfo.profit.toFixed(2)).toLocaleString("es-AR") }}
         </h5>
-      </span>
-      <b-button
-        :disabled="!quantity || product === 'Nombre'"
-        variant="info"
-        @click="pushProduct()"
-        >Agregar Producto</b-button
-      >
-
-      <b-button
-        pill
-        size="lg"
-        variant="success"
-        type="submit"
-        :disabled="$v.$invalid === true || Object.keys(products).length === 0"
-        >Agregar Kit</b-button
-      >
+        <h5>
+          Costo Final:
+          {{ "$" + Number(kitInfo.cost.toFixed(2)).toLocaleString("es-AR") }}
+        </h5>
+        <h5>
+          Precio Final:
+          {{
+            "$" + Number(kitInfo.final_price.toFixed(2)).toLocaleString("es-AR")
+          }}
+        </h5>
+      </b-card>
     </div>
-    <span v-else>
-      <h2 style="text-align: center;">
-        Todavía no tenés Productos Creados
-        <router-link
-          style="color: rgb(10, 92, 173); text-align:center; margin-top: 20px;"
-          to="/crear-producto"
-        >
-          <h2 style="font-size: 4rem;">
-            ¡Crealos!
-          </h2>
-        </router-link>
-      </h2>
-    </span>
+    <b-button
+      pill
+      size="lg"
+      class="mb-2"
+      variant="success"
+      type="submit"
+      :disabled="$v.$invalid === true || Object.keys(products).length === 0"
+      >Agregar Kit</b-button
+    >
   </form>
 </template>
 
@@ -86,8 +103,9 @@
         nameKit: undefined,
         submitStatus: null,
         products: {},
-        product: "Nombre",
+        product: undefined,
         quantity: undefined,
+        kitInfo: undefined,
       };
     },
     validations: {
@@ -95,11 +113,86 @@
         required,
       },
     },
-    beforeCreate() {
+    watch: {
+      products: {
+        //Use Watcher because computed propery wont re-evaluate every time the quantity changes
+        async handler(newVal) {
+          let result = [];
+          let setPrices = Object.keys(this.products).map(async (el) => {
+            let cost_query = await this.$store.dispatch("setProductPrice", el); //Cost
+            let profit_query = this.$store.state.products.find(
+              (product) => product.name === el
+            );
+            let final_price =
+              this.getFinalPrice({
+                price: cost_query,
+                profit: profit_query.profit,
+              }) * this.products[el].quantity;
+            return {
+              cost: cost_query * this.products[el].quantity,
+              final_price: final_price,
+              profit: final_price - cost_query * this.products[el].quantity,
+            };
+          });
+          let decapsulated = await Promise.all(setPrices);
+          let sum = decapsulated.reduce(
+            (acc, { cost, final_price, profit }) => {
+              return {
+                cost: acc.cost + cost,
+                final_price: acc.final_price + final_price,
+                profit: acc.profit + profit,
+              };
+            },
+            {
+              cost: 0,
+              final_price: 0,
+              profit: 0,
+            }
+          );
+          this.kitInfo = sum.cost !== 0 ? sum : undefined;
+        },
+        deep: true,
+      },
+    },
+
+    computed: {
+      filteredProducts() {
+        let merge = this.$store.state.products
+          .map((el) => el.name)
+          .concat(Object.keys(this.products));
+        let duplicates = merge.filter(
+          (item, index) => merge.indexOf(item) != index
+        );
+        let mergeUnique = [...new Set(merge)];
+        return mergeUnique.filter((el) => !duplicates.includes(el));
+      },
+      productsWithDropdown() {
+        let result = [];
+        for (const iterator of Object.values(this.products)) {
+          result.push({ ...iterator, opts: "" });
+        }
+        return result;
+      },
+    },
+    created() {
       this.$store.dispatch("setProducts");
     },
-    created() {},
     methods: {
+      getFinalPrice({ price, profit }) {
+        return ((1 + profit / 100) * price).toFixed(2).toLocaleString("es-AR");
+      },
+      updQuantity(newQuantity, productName) {
+        if (!newQuantity || newQuantity === 0) {
+          this.$delete(this.products, productName);
+        } else {
+          this.products[productName].quantity = Number(
+            newQuantity
+              .replace(/,/g, "_")
+              .replace(/\./g, "")
+              .replace(/_/g, ".")
+          );
+        }
+      },
       sendData() {
         this.$v.$touch();
         if (this.$v.$invalid) {
@@ -129,19 +222,24 @@
           name: this.product,
           quantity: Number(this.quantity),
         });
-        this.quantity = "";
-        this.product = "";
+        this.quantity = undefined;
+        this.product = undefined;
       },
       deleteProduct(name) {
         this.$delete(this.products, name);
       },
     },
-    watch: {},
   };
 </script>
 
 <style scoped>
-  #container {
+  * {
+    text-align: center;
+  }
+  .card {
+    min-width: 50vw;
+  }
+  form {
     display: flex;
     flex-direction: column;
     padding-top: 20px;
@@ -149,50 +247,17 @@
     align-items: center;
     min-height: 90vh;
   }
-  #container > input,
-  #container > input {
+  .input-group {
     width: 80vw;
   }
   h2 {
     font-weight: 500;
     font-size: 2.4em;
   }
-  #quantity-and-dropdown {
-    display: inline-flex;
-    align-items: center;
-    width: 80vw;
-  }
-  #quantity-and-dropdown > h2 {
-    margin: 0 0 0 2vw;
-  }
-  #quantity-and-dropdown > input {
-    min-height: 100%;
-  }
-  #select-placeholder {
-    color: #fff;
-  }
-  div > h4,
-  div > span,
-  div > input {
-    margin: 10px;
-  }
-  form > span {
+  .products-form {
     display: flex;
+    flex-flow: column nowrap;
     align-items: center;
-    height: 85vh;
-    justify-content: center;
-  }
-  #container > h4,
-  button[type="submit"] {
-    margin: 3vh;
-  }
-  .select-characteristics {
-    width: 80vw;
-  }
-  .select-inside-card {
-    width: 100%;
-  }
-  select {
-    width: 80vw;
+    justify-content: space-around;
   }
 </style>

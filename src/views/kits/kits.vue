@@ -2,65 +2,94 @@
   <div>
     <h1>Kits</h1>
     <div>
-      <div class="buttons-header">
-        <b-button
-          variant="primary"
-          style="margin: 2vh 5vh;"
-          size="lg"
-          @click="$router.push('crear-kit')"
-        >
-          Crear<b-icon icon="plus" aria-hidden="true"></b-icon
-        ></b-button>
-        <filterItems
-          :methodOpt="{
-            price: ['<', '>'],
-          }"
-          @setItems="setItems"
-          :filtersOpt="[{ type: 'Precio', name: 'Precio' }]"
-          :items.sync="items"
-          :itemsToShow.sync="itemsToShow"
-        >
-        </filterItems>
-      </div>
-
-      <b-table
-        striped
-        hover
-        responsive="sm"
-        :fields="fields"
-        :items="itemsToShow"
-        v-if="kits"
+      <filterItems
+        :methodOpt="{
+          price: ['<', '>'],
+        }"
+        @setItems="setItems"
+        :filtersOpt="[{ type: 'Precio', name: 'Costo' }]"
+        :items.sync="items"
+        :itemsToShow.sync="itemsToShow"
+        action="/crear-kit"
       >
-        <template #cell(nombre)="data">
+      </filterItems>
+
+      <b-table hover responsive :items="itemsToShow" v-if="kits">
+        <template #cell(productos)="data">
+          <span v-if="data.value.length < 3" v-html="data.value.join('<br/>')">
+            sads</span
+          >
+          <div v-else>
+            <span
+              v-html="
+                showComplete.find((el) => el.name === data.item.nombre).show_all
+                  ? productsText
+                      .find((el) => el.name === data.item.nombre)
+                      .p.map((el) => el.p)
+                      .join('<br>')
+                  : moreExpensiveProducts(data.item.nombre)
+              "
+            >
+            </span>
+            <br />
+            <span
+              @click="
+                showComplete.find(
+                  (el) => el.name === data.item.nombre
+                ).show_all = !showComplete.find(
+                  (el) => el.name === data.item.nombre
+                ).show_all
+              "
+              class="text-info"
+              style="cursor:pointer;"
+            >
+              Ver
+              {{
+                showComplete.find((el) => el.name === data.item.nombre).show_all
+                  ? "menos"
+                  : "más"
+              }}
+            </span>
+          </div>
+        </template>
+        <template #cell(precio)="data">{{
+          "$" +
+            Number(data.value.replace(/[^0-9&.]/g, "")).toLocaleString("es-AR")
+        }}</template>
+        <template #head(precio)>Costo</template>
+        <template #cell(ID)="data">
           <b-td class="text-primary" style="white-space:nowrap;"
             >{{ data.value }}
-            <b-dropdown variant="white" no-caret>
-              <template #button-content>
-                <b-icon
-                  scale="0.9"
-                  icon="three-dots-vertical"
-                  aria-hidden="true"
-                ></b-icon>
-              </template>
-              <b-dropdown-item-button
-                @click.stop="editKit(data.value)"
-                tabindex="-1"
-                variant="info"
-              >
-                <b-icon icon="pencil" aria-hidden="true"></b-icon>
-                Editar
-              </b-dropdown-item-button>
-              <b-dropdown-divider></b-dropdown-divider>
-              <b-dropdown-item-button
-                variant="danger"
-                @click.stop="deleteKit(data.value)"
-              >
-                <b-icon icon="trash-fill" aria-hidden="true"></b-icon>
-                Eliminar
-              </b-dropdown-item-button>
-            </b-dropdown></b-td
-          >
-        </template></b-table
+          </b-td>
+        </template>
+        <template #head(opt)>{{ `` }}</template>
+        <template #cell(opt)="data"
+          ><b-dropdown right style="max-width:100%;" variant="white" no-caret>
+            <template #button-content>
+              <b-icon
+                scale="1.1"
+                icon="three-dots-vertical"
+                aria-hidden="true"
+              ></b-icon>
+            </template>
+            <b-dropdown-item-button
+              @click.stop="editKit(data)"
+              tabindex="-1"
+              variant="info"
+            >
+              <b-icon icon="pencil" aria-hidden="true"></b-icon>
+              Editar
+            </b-dropdown-item-button>
+            <b-dropdown-divider></b-dropdown-divider>
+            <b-dropdown-item-button
+              variant="danger"
+              @click.stop="deleteKit(data)"
+            >
+              <b-icon icon="trash-fill" aria-hidden="true"></b-icon>
+              Eliminar
+            </b-dropdown-item-button>
+          </b-dropdown></template
+        ></b-table
       >
     </div>
   </div>
@@ -70,7 +99,6 @@
   import { db } from "../../firebase/firebase.js";
   import { mapState } from "vuex";
   import filterItems from "../../components/filterItems";
-  import Vue from "vue";
 
   export default {
     name: "kits",
@@ -81,8 +109,8 @@
       return {
         items: [],
         itemsToShow: [],
-        prices: {},
-        fields: ["nombre", "productos", "id", "precio"],
+        costs: {},
+        showComplete: [],
       };
     },
     created() {
@@ -90,9 +118,9 @@
     },
     computed: {
       ...mapState(["kits"]),
-      async productsText() {
+      productsText() {
         if (this.kits) {
-          let products = {};
+          let products = [];
 
           this.kits.forEach(async (nameOfActualItem) => {
             let query = await db
@@ -102,9 +130,21 @@
               .once("value");
 
             let p = Object.keys(query.val()).map((el) => {
-              return `${el}: ${query.val()[el].quantity}`;
+              return {
+                name: el,
+                p: `${el}:&nbsp;${Number(
+                  query.val()[el].quantity
+                ).toLocaleString("es-AR")}`,
+              };
             });
-            Vue.set(products, nameOfActualItem.name, p.join(", "));
+            products.push({
+              name: nameOfActualItem.name,
+              p: p,
+            });
+            this.showComplete.push({
+              name: nameOfActualItem.name,
+              show_all: false,
+            });
           });
           return products;
         }
@@ -112,13 +152,12 @@
     },
     watch: {
       kits: {
-        async handler(newVal, oldVal) {
-          let result = {};
+        async handler(newVal) {
           let kitsPrices = {};
-          if (!newVal) return false;
+          if (!newVal) return;
           for (const iterator of newVal) {
-            let result = {};
-            let prices = [];
+            let result = [];
+            let costs = [];
             for (const key in iterator.products) {
               try {
                 let product = iterator.products[key];
@@ -127,9 +166,11 @@
                     "setProductPrice",
                     product.name
                   )) * product.quantity;
-                prices.push(priceOfProduct);
-                let finalPrice = prices.reduce((a, b) => a + b, 0);
-                Vue.set(result, iterator.name, finalPrice);
+                costs.push(priceOfProduct);
+                result.push({
+                  name: product.name,
+                  price: priceOfProduct,
+                });
               } catch (error) {
                 await db
                   .ref(
@@ -138,38 +179,88 @@
                   .set(null);
               }
             }
-            kitsPrices[iterator.name] = Object.values(result)[0];
+            kitsPrices[iterator.name] = result;
           }
-          this.prices = kitsPrices;
+          this.costs = kitsPrices;
           this.setItems(newVal);
         },
         deep: true,
       },
     },
+
     methods: {
+      moreExpensiveProducts(name) {
+        let total_sum = [];
+        for (const cost of this.costs[name]) {
+          total_sum.push({
+            name: cost.name,
+            final_price: cost.price,
+          });
+        }
+        let names = total_sum
+          .sort((a, b) => a.final_price - b.final_price)
+          .reverse()
+          .map((el) => el.name)
+          .slice(0, 2);
+
+        let all_products_paragraph_of_kit = this.productsText.find(
+          (el) => el.name === name
+        ).p;
+
+        let paragraphs = names.map(
+          (product) =>
+            all_products_paragraph_of_kit.find((el) => el.name === product).p
+        );
+        console.log(paragraphs);
+        return paragraphs.join("<br/>");
+      },
+      async getFinalPrice(name) {
+        let kits_prices = [];
+        let formula = (price, profit) =>
+          ((1 + profit / 100) * price).toFixed(2).toLocaleString("es-AR");
+        let prices = this.costs[name].map(async (el) => {
+          let profit = await db
+            .ref(
+              `users/${this.$store.getters["user/userProfile"].uid}/products/${el.name}/profit`
+            )
+            .once("value");
+          profit = profit.val();
+          return Number(formula(el.price, profit));
+        });
+        prices = await Promise.all(prices);
+        kits_prices.push(Number(prices.reduce((a, b) => a + b, 0)));
+
+        return kits_prices;
+      },
       async setItems(itemsWithoutFormat) {
         this.items = [];
         if (!itemsWithoutFormat) return false;
         itemsWithoutFormat.forEach(async (element) => {
           if (!element) return false;
-          let price = this.prices[element.name];
-          let products = await this.productsText;
+          let price = this.costs[element.name].reduce((a, b) => a + b.price, 0);
+          let products = this.productsText;
+          let final_price = await this.getFinalPrice(element.name);
           this.items.push({
+            ID: element.id.substr(13),
             nombre: element.name,
-            productos: products[element.name],
-            id: element.id.substr(13),
-            precio: `$${price.toLocaleString("es-AR")}`,
+            productos: products
+              .find((el) => el.name === element.name)
+              .p.map((el) => el.p),
+            precio: `$${price}`,
+            precio_final: `$${final_price.toLocaleString("es-AR")}`,
+            ganancia: `$${(final_price - price).toLocaleString("es-AR")}`,
+            opt: "",
           });
           this.itemsToShow = this.items;
         });
       },
-      deleteKit(kit) {
+      deleteKit({ item }) {
         db.ref(
-          `users/${this.$store.getters["user/userProfile"].uid}/kits/${kit}`
+          `users/${this.$store.getters["user/userProfile"].uid}/kits/${item.nombre}`
         ).remove();
       },
-      editKit(kit) {
-        this.$store.commit("changeName", kit);
+      editKit({ item }) {
+        this.$store.commit("changeName", item.nombre);
         this.$router.push("ver-kit");
       },
     },

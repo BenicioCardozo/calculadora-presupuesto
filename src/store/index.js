@@ -36,6 +36,8 @@ export default new Vuex.Store({
                 kits: order.kits,
                 products: order.products,
                 importance: order.importance,
+                price: order.price,
+                status: order.status,
               });
               state.orders = orders;
             }

@@ -4,7 +4,7 @@ const state = {
   userProfile: {},
   loggedIn: false,
 };
-// users/${this.$store.getters['user/userProfile'].uid}
+
 const getters = {
   userProfile: ({ userProfile }) => userProfile,
   loggedIn: ({ loggedIn }) => loggedIn,
@@ -13,7 +13,6 @@ const getters = {
 const mutations = {
   USER_DETAILS(state, userProfile) {
     state.loggedIn = true;
-    console.log(userProfile.uid);
     state.userProfile = {
       name: userProfile.displayName,
       uid: userProfile.uid,
@@ -39,7 +38,6 @@ const actions = {
 
   async logout() {
     try {
-      console.log(22);
       await firebase.auth().signOut();
     } catch (error) {
       console.log(error);

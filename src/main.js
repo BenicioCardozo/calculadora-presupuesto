@@ -7,6 +7,12 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import Vuelidate from "vuelidate";
 import { auth } from "./firebase/firebase";
+import AsyncComputed from "vue-async-computed";
+import ToggleButton from "vue-js-toggle-button";
+
+Vue.use(ToggleButton);
+
+Vue.use(AsyncComputed);
 
 Vue.use(Vuelidate);
 

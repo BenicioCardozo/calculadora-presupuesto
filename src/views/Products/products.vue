@@ -9,7 +9,7 @@
         }"
         @setItems="setItems"
         :filtersOpt="[
-          { type: 'Precio', name: 'Precio' },
+          { type: 'Precio', name: 'Costo' },
           { name: 'Tipo', type: 'Tipo' },
         ]"
         :items.sync="items"
@@ -19,7 +19,6 @@
       </filterItems>
 
       <b-table
-        striped
         hover
         responsive
         :fields="fields"
@@ -36,7 +35,7 @@
               v-html="
                 showComplete.find((el) => el.name === data.item.nombre).show_all
                   ? sourceMaterialsText[data.item.nombre].join('<br>')
-                  : moreExpensiveSourceMaterials(data.value, data.item.nombre)
+                  : moreExpensiveSourceMaterials(data.value)
               "
             >
             </span>
@@ -107,7 +106,6 @@
 <script>
   import { db } from "../../firebase/firebase.js";
   import { mapState } from "vuex";
-  import Vue from "vue";
   import filterItems from "../../components/filterItems";
 
   export default {
@@ -127,6 +125,7 @@
           "materias_primas",
           "precio",
           "precio_final",
+          "margen_de_ganancia",
           "ganancia",
           "opt",
         ],
@@ -134,7 +133,7 @@
         itemsToShow: [],
         prices: {},
         showComplete: [],
-        sourceMaterialsTex: undefined,
+        sourceMaterialsText: undefined,
       };
     },
     created() {
@@ -146,7 +145,7 @@
 
     watch: {
       products: {
-        async handler(newVal, oldVal) {
+        async handler(newVal) {
           let result = {};
           for (const key in newVal) {
             const element = newVal[key];
@@ -154,7 +153,7 @@
               "setProductPrice",
               element.name
             );
-            Vue.set(result, element.name, price);
+            result[element.name] = price;
           }
           this.prices = result;
 
@@ -168,9 +167,9 @@
                 .once("value");
 
               let p = Object.keys(query.val()).map((el) => {
-                return `${el}: ${Number(query.val()[el].howMuch).toLocaleString(
-                  "es-AR"
-                )}`;
+                return `${el}:&nbsp;${Number(
+                  query.val()[el].howMuch
+                ).toLocaleString("es-AR")}`;
               });
 
               sourceMaterials[nameOfActualItem.name] = p;
@@ -188,7 +187,7 @@
       },
     },
     methods: {
-      moreExpensiveSourceMaterials(array, product) {
+      moreExpensiveSourceMaterials(array) {
         let prices = [];
         for (const iterator of array) {
           db.ref(
@@ -209,6 +208,11 @@
         );
         return parapraph.join("<br>");
       },
+      getFinalPrice(name, profit) {
+        return ((1 + profit / 100) * this.prices[name])
+          .toFixed(2)
+          .toLocaleString("es-AR");
+      },
       setItems() {
         this.items = [];
         let itemsWithoutFormat = this.products;
@@ -226,8 +230,15 @@
               tamaño: element.characteristics.size,
               materias_primas: sourceMaterials[element.name],
               precio: `$${precio}`,
-              precio_final: `$3`,
-              ganancia: `$${element.profit}`,
+              precio_final: `$${Number(
+                this.getFinalPrice(element.name, element.profit)
+              ).toLocaleString("es-AR")}`,
+              margen_de_ganancia: `${element.profit.toLocaleString("es-AR")}%`, //Profit Margin *
+              ganancia: `$${Number(
+                (
+                  this.getFinalPrice(element.name, element.profit) - precio
+                ).toFixed(2)
+              ).toLocaleString("es-AR")}`,
             });
             this.itemsToShow = this.items;
           });

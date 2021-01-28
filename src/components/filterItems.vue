@@ -46,9 +46,8 @@
     </div>
     <span :key="filter + ' ' + index" v-for="(filter, index) in filters">
       <h5 v-if="filter.name === 'Precio'">
-        {{ filter.name }} {{ filter.method }} ${{
-          Number(filter.number).toLocaleString("es-AR")
-        }}
+        {{ filtersOpt.find((el) => el.type === "Precio").name }}
+        {{ filter.method }} ${{ Number(filter.number).toLocaleString("es-AR") }}
         <b-icon
           icon="trash"
           style="cursor:pointer;"

@@ -1,12 +1,7 @@
 <template>
   <form @submit.prevent="sendData()" novalidate>
-    <!-- Vars Kit || Kits sometimes refer to both, products and kits -->
-    <div id="container" v-if="this.$store.state.kits !== undefined">
-      <h2>Crear</h2>
-      <b-form-select size="sm" v-model="client">
-        <b-form-select-option selected disabled hidden value="Cliente">
-          Nombre del Cliente
-        </b-form-select-option>
+    <b-input-group prepend="Cliente" class="mb-2">
+      <b-form-select v-model="client">
         <b-form-select-option
           :value="client.name"
           v-bind:key="client + ' ' + index"
@@ -15,22 +10,14 @@
           {{ client.name }}
         </b-form-select-option>
       </b-form-select>
-      <b-form-select size="sm" v-model="importance">
-        <b-form-select-option selected disabled hidden value="Importancia">
-          Importancia
-        </b-form-select-option>
-        <b-form-select-option
-          :value="opt"
-          v-bind:key="opt + ' ' + index"
-          v-for="(opt, index) in importanceOpt"
-        >
-          {{ opt }}
-        </b-form-select-option>
+    </b-input-group>
+    <b-input-group prepend="Importancia" class="mb-2">
+      <b-form-select :options="importanceOpt" v-model="importance">
       </b-form-select>
+    </b-input-group>
+    <b-input-group prepend="Fecha de Entrega" class="mb-2">
       <b-form-datepicker
-        style="width:80vw;"
         v-model="deliveryTime"
-        size="sm"
         :min="today"
         language
         :date-format-options="{
@@ -40,19 +27,36 @@
           weekday: 'long',
         }"
         hide-header
-        placeholder="Fecha de Entrega"
         locale="es-AR"
+        placeholder=""
       ></b-form-datepicker>
-      <span id="sub-title">
-        <h4>{{ subtitle }} que Lleva</h4>
-        <b-button @click="seeKits = !seeKits" size="sm" variant="outline-info"
-          >¿Lleva {{ seeKits ? "Productos sueltos" : "Kits" }}?</b-button
-        >
-      </span>
-      <b-form-select size="sm" v-model="kit">
-        <b-form-select-option selected disabled hidden value="Kit">
-          Nombre del {{ subtitle.slice(0, -1) }}
-        </b-form-select-option>
+    </b-input-group>
+
+    <span id="sub-title">
+      <h4 class="mb-1 mt-3">{{ subtitle }} que Lleva</h4>
+
+      <toggle-button
+        :value="true"
+        :color="{
+          checked: '#6c757d',
+          unchecked: '#6c757d',
+        }"
+        :labels="{
+          checked: 'Kits',
+          unchecked: 'Productos',
+        }"
+        :width="120"
+        :height="30"
+        :font-size="15"
+        v-model="seeKits"
+        class="mb-3"
+      />
+    </span>
+    <b-input-group
+      class="mb-2"
+      :prepend="'Nombre del ' + subtitle.slice(0, -1)"
+    >
+      <b-form-select v-model="kit">
         <b-form-select-option
           v-show="subtitle === 'Kits'"
           :value="kit.name"
@@ -69,65 +73,86 @@
         >
           {{ product.name }}
         </b-form-select-option>
-      </b-form-select>
+      </b-form-select></b-input-group
+    >
+    <b-input-group :prepend="`Cantidad del ${subtitle.slice(0, -1)}`">
       <b-input
         :placeholder="`Cantidad del ${subtitle.slice(0, -1)}`"
         type="number"
-        size="sm"
         v-model="quantity"
       >
-      </b-input>
-      <b-button
-        :disabled="!quantity || kit === 'Kit'"
-        @click="pushKit()"
-        variant="secondary"
-        >Agregar {{ subtitle.slice(0, -1) }}</b-button
-      >
-      <span
-        v-if="Object.keys(kitsAndProducts).length > 0"
-        style="display:flex; justify-content: space-around;width:80vw;"
-      >
-        <h5 :key="kit.name" v-for="kit in kitsAndProducts">
-          {{ `${kit.name}  ${kit.quantity} ` }}
-          <b-icon
-            style="cursor:pointer;"
-            icon="trash"
-            scale="1.1"
-            @click.stop="deleteKitOrProduct(kit.name)"
-          >
-          </b-icon>
-        </h5>
-      </span>
-      <b-button
-        pill
-        size="lg"
-        variant="success"
-        type="submit"
-        :disabled="
-          $v.$invalid === true || Object.values(kitsAndProducts).length < 1
-        "
-        >Agregar Orden</b-button
-      >
-    </div>
-    <span v-else>
-      <h2 style="text-align: center;">
-        Todavía no tenés Kits Creados
-        <router-link
-          style="color: rgb(10, 92, 173); text-align:center; margin-top: 20px;"
-          to="/crear-kit"
+      </b-input
+    ></b-input-group>
+    <b-table
+      class="mb-2 mt-2"
+      :fields="fields"
+      responsive
+      :items="Object.values(kitsAndProducts)"
+      caption-top
+      v-if="Object.values(kitsAndProducts).length > 0"
+    >
+      <template #head(name)>Nombre</template>
+      <template #head(quantity)>Cantidad</template>
+      <template #head(opts)> {{ `` }}</template>
+      <template #cell(quantity)="data">
+        <div class="d-flex justify-content-center ">
+          <b-input
+            style="max-width:70%;"
+            @input="updQuantity($event, data.item.name)"
+            :value="data.value.toLocaleString('es-AR')"
+          ></b-input>
+        </div>
+      </template>
+      <template #cell(opts)="data">
+        {{ data.value }}
+        <b-icon
+          style="cursor:pointer;"
+          icon="trash"
+          scale="1.2"
+          @click.stop="deleteKitOrProduct(data.item.name)"
         >
-          <h2 style="font-size: 4rem;">
-            ¡Crealos!
-          </h2>
-        </router-link>
-      </h2>
-    </span>
+        </b-icon
+      ></template>
+    </b-table>
+    <b-button
+      :disabled="!quantity || kit === 'Kit'"
+      @click="pushKit()"
+      variant="info"
+      class="mb-2"
+      >Agregar {{ subtitle.slice(0, -1) }}</b-button
+    >
+    <!-- <span
+      v-if="Object.keys(kitsAndProducts).length > 0"
+      style="display:flex; justify-content: space-around;width:80vw;"
+    >
+      <h5 :key="kit.name" v-for="kit in kitsAndProducts">
+        {{ `${kit.name}  ${kit.quantity} ` }}
+        <b-icon
+          style="cursor:pointer;"
+          icon="trash"
+          scale="1.1"
+          @click.stop="deleteKitOrProduct(kit.name)"
+        >
+        </b-icon>
+      </h5>
+    </span> -->
+    <b-button
+      pill
+      size="lg"
+      variant="success"
+      type="submit"
+      :disabled="
+        $v.$invalid === true || Object.values(kitsAndProducts).length < 1
+      "
+      >Agregar Pedido</b-button
+    >
   </form>
 </template>
 
 <script>
   import { db } from "../../firebase/firebase.js";
   import { required } from "vuelidate/lib/validators";
+
   export default {
     name: "create-product",
     data() {
@@ -136,6 +161,7 @@
         kit: "Kit",
         kits: {},
         products: {},
+        fields: ["name", "quantity", "opts"],
         quantity: undefined,
         importance: "Importancia",
         importanceOpt: ["Alta", "Media", "Baja"],
@@ -143,6 +169,51 @@
         submitStatus: null,
         seeKits: true,
       };
+    },
+    asyncComputed: {
+      async price() {
+        let productsPrices = [];
+        let kitsPrices = [];
+
+        let kits = this.kits;
+        let products = this.products;
+
+        if (kits) {
+          for (const iterator in kits) {
+            let kitQuantity = Number(this.kits[iterator].quantity);
+            let costs = await this.getCostOfKit(iterator);
+            let kitPrice = await this.getFinalPriceOfKit(costs);
+            kitsPrices.push(kitPrice * kitQuantity);
+          }
+        }
+        if (products) {
+          for (const key in products) {
+            let costOfProduct = await this.$store.dispatch(
+              "setProductPrice",
+              key
+            );
+            let profit = await db
+              .ref(
+                `users/${this.$store.getters["user/userProfile"].uid}/products/${key}/profit/`
+              )
+              .once("value");
+            profit = profit.val();
+            let priceOfProduct = ((1 + profit / 100) * costOfProduct)
+              .toFixed(2)
+              .toLocaleString("es-AR");
+            let quantity = this.products[key].quantity;
+            productsPrices.push(priceOfProduct * quantity);
+          }
+        }
+        console.log(
+          kitsPrices.reduce((a, b) => a + b, 0) +
+            productsPrices.reduce((a, b) => a + b, 0)
+        );
+        return (
+          kitsPrices.reduce((a, b) => a + b, 0) +
+          productsPrices.reduce((a, b) => a + b, 0)
+        );
+      },
     },
     computed: {
       today() {
@@ -160,8 +231,7 @@
         return this.seeKits ? "Kits" : "Productos";
       },
       kitsAndProducts() {
-        let result = { ...this.kits, ...this.products };
-        return result;
+        return { ...this.kits, ...this.products };
       },
     },
     validations: {
@@ -175,13 +245,63 @@
         required,
       },
     },
-    beforeCreate() {
+    created() {
       this.$store.dispatch("setKits");
       this.$store.dispatch("setClients");
       this.$store.dispatch("setProducts");
     },
-    created() {},
+
     methods: {
+      async getCostOfKit(kit) {
+        let products = await db
+          .ref(
+            `users/${this.$store.getters["user/userProfile"].uid}/kits/${kit}/products/`
+          )
+          .once("value");
+        products = products.val();
+        let result = [];
+        for (const key in products) {
+          let product = products[key];
+          let priceOfProduct =
+            (await this.$store.dispatch("setProductPrice", product.name)) *
+            product.quantity;
+          result.push({
+            name: product.name,
+            price: priceOfProduct,
+          });
+        }
+        return result;
+      },
+      async getFinalPriceOfKit(productsWithCosts) {
+        let kits_prices = [];
+        let formula = (price, profit) =>
+          ((1 + profit / 100) * price).toFixed(2).toLocaleString("es-AR");
+        let prices = productsWithCosts.map(async (el) => {
+          let profit = await db
+            .ref(
+              `users/${this.$store.getters["user/userProfile"].uid}/products/${el.name}/profit`
+            )
+            .once("value");
+          profit = profit.val();
+          return Number(formula(el.price, profit));
+        });
+        prices = await Promise.all(prices);
+        kits_prices.push(Number(prices.reduce((a, b) => a + b, 0)));
+
+        return kits_prices;
+      },
+      updQuantity(newQuantity, name) {
+        if (!newQuantity || newQuantity === 0) {
+          this.$delete(this.seeKits ? this.kits : this.products, name);
+        } else {
+          (this.seeKits ? this.kits : this.products)[name].quantity = Number(
+            newQuantity
+              .replace(/,/g, "_")
+              .replace(/\./g, "")
+              .replace(/_/g, ".")
+          );
+        }
+      },
       sendData() {
         this.$v.$touch();
         this.submitStatus = "OK";
@@ -198,6 +318,8 @@
           createdAt: `${this.toLocaleDate(now)}`,
           importance: this.importance,
           id: newKey,
+          status: "Pendiente",
+          price: this.price,
         };
 
         let updates = {};
@@ -208,6 +330,7 @@
         this.$router.push("pedidos");
       },
       toLocaleDate(date) {
+        console.log(date);
         const options = {
           month: "long",
           day: "numeric",
@@ -235,12 +358,11 @@
           : this.$delete(this.products, name);
       },
     },
-    watch: {},
   };
 </script>
 
 <style scoped>
-  #container {
+  form {
     display: flex;
     flex-direction: column;
     padding-top: 20px;
@@ -248,64 +370,16 @@
     align-items: center;
     min-height: 90vh;
   }
-  #container > input,
-  #container > input {
-    padding: 1.5em !important;
+  .input-group {
     width: 80vw;
   }
-  h2 {
-    font-weight: 500;
-    font-size: 2.4em;
-  }
-  #quantity-and-dropdown {
-    display: inline-flex;
-    align-items: center;
-    width: 80vw;
-  }
-  #quantity-and-dropdown > h2 {
-    margin: 0 0 0 2vw;
-  }
-  #quantity-and-dropdown > input {
-    min-height: 100%;
-  }
-  #select-placeholder {
-    color: #fff;
-  }
-  div > h4,
-  div > span,
-  div > input {
-    margin: 10px;
-  }
-  form > span {
-    display: flex;
-    align-items: center;
-    height: 85vh;
-    justify-content: center;
-  }
-  #container > h4,
-  button[type="submit"] {
-    margin: 3vh;
-  }
-  .select-characteristics {
-    width: 80vw;
-  }
-  .select-inside-card {
-    width: 100%;
-  }
-  select {
-    width: 80vw;
+  * {
+    text-align: center;
   }
   #sub-title {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
-    flex-wrap: wrap;
-    width: 100vw;
-  }
-  #sub-title > h4 {
-    padding: 2vh;
-  }
-  .small {
-    display: none;
   }
 </style>

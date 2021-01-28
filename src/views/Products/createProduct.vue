@@ -70,14 +70,13 @@
           Nombre
         </b-form-select-option>
       </b-form-select>
-      <b-input-group
-        class="mb-3"
-        :append="unitOfSourceMaterial ? `Por ${unitOfSourceMaterial}` : null"
-      >
+      <b-input-group class="mb-3">
         <b-input
           v-model="howMuch"
           type="number"
-          placeholder="Cantidad de Materia Prima"
+          :placeholder="
+            `Cantidad de ${pluralize(unitOfSourceMaterial) || 'Materia Prima'}`
+          "
         ></b-input>
       </b-input-group>
       <b-button
@@ -166,6 +165,9 @@
       nameProduct: {
         required,
       },
+      profit: {
+        required,
+      },
       size: {
         required,
       },
@@ -184,8 +186,6 @@
     },
     computed: {
       calOfFinalPrice() {
-        // 100% + margen% === precio final
-        // costo === 100%
         if (!this.profit || Object.keys(this.sourceMaterials) < 1) return false;
         let prices = [];
         for (const iterator of Object.values(this.sourceMaterials)) {
@@ -199,13 +199,8 @@
               );
             });
         }
-        console.log(
-          prices.reduce((a, b) => a + b, 0),
-          prices
-        );
         let equation =
           (1 + this.profit / 100) * prices.reduce((a, b) => a + b, 0);
-        console.log(equation);
         return equation;
       },
       sourceMaterialsListWithDropdown() {
@@ -227,12 +222,22 @@
       },
     },
     methods: {
+      pluralize(word) {
+        if (!word) return;
+        let finalizes_with_a_vowel = ["a", "e", "i", "o", "u"].includes(
+          word.substr(-1)
+        );
+        return finalizes_with_a_vowel ? `${word}s` : `${word}es`;
+      },
       async updQuantity(newQuantity, sourceMaterialName) {
         if (!newQuantity || newQuantity === 0) {
           Vue.delete(this.sourceMaterials, sourceMaterialName);
         } else {
           this.sourceMaterials[sourceMaterialName].howMuch = Number(
-            newQuantity.replace(",", ".")
+            newQuantity
+              .replace(/,/g, "_")
+              .replace(/\./g, "")
+              .replace(/_/g, ".")
           );
         }
       },
@@ -268,20 +273,14 @@
         }
       },
       pushSourceMaterial(newMeasurementUnit) {
-        if (
-          this.sourceMaterial.$invalid !== "Nombre" &&
-          this.howMuch &&
-          this.sourceMaterial !== "Nombre"
-        ) {
-          this.$set(this.sourceMaterials, this.sourceMaterial, {
-            name: this.sourceMaterial,
-            howMuch: Number(this.howMuch.replace(",", ".")),
-            measurementUnit: this.unitOfSourceMaterial,
-          });
-          this.howMuch = "";
-          this.sourceMaterial = "Nombre";
-          this.unitOfSourceMaterial = null;
-        }
+        this.$set(this.sourceMaterials, this.sourceMaterial, {
+          name: this.sourceMaterial,
+          howMuch: Number(this.howMuch.replace(",", ".")),
+          measurementUnit: this.unitOfSourceMaterial,
+        });
+        this.howMuch = "";
+        this.sourceMaterial = "Nombre";
+        this.unitOfSourceMaterial = null;
       },
       deleteSourceMaterial(name) {
         this.$delete(this.sourceMaterials, name);

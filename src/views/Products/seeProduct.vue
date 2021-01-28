@@ -1,232 +1,342 @@
 <template>
-  <div>
-    <div id="container">
-      <h1>{{ this.$store.state.nameOfActualItem }}</h1>
-      <b-card
-        header="Materias Primas"
-        header-tag="h3"
-        border-variant="info"
-        align="center"
-        style="margin: 0 5vh 0!important"
-        class="source-materials-card"
+  <form @submit.prevent="sendData()" novalidate>
+    <div id="container" v-if="this.$store.state.sourceMaterials !== undefined">
+      <b-input-group prepend="Nombre" class="mb-2">
+        <b-input
+          @input="$v.name.$touch"
+          :style="[
+            $v.name.$error ? { border: '2px solid rgb(255, 36, 36)' } : null,
+          ]"
+          type="text"
+          v-model="name"
+        ></b-input
+      ></b-input-group>
+
+      <b-input-group prepend="Tipo de Producto">
+        <b-form-select v-model="type" :options="types"> </b-form-select
+      ></b-input-group>
+      <b-input-group prepend="Tamaño" class="mb-2 mt-3">
+        <b-form-select
+          v-model="size"
+          class="select-inside-card"
+          :options="sizes"
+        >
+        </b-form-select>
+      </b-input-group>
+      <b-input-group prepend="Color" class="mb-2">
+        <b-form-select
+          v-model="color"
+          class="select-inside-card"
+          :options="colors"
+        >
+        </b-form-select>
+      </b-input-group>
+      <b-input-group class="mb-2" prepend="Calidad">
+        <b-form-select
+          v-model="quality"
+          class="select-inside-card"
+          :options="qualities"
+        >
+        </b-form-select>
+      </b-input-group>
+      <b-input-group
+        prepend="Margen de Ganancia"
+        :append="
+          `% ${
+            calOfFinalPrice
+              ? `(Precio Final $${calOfFinalPrice.toFixed(2)})`
+              : ''
+          }`
+        "
       >
-        <span
-          ><h5>Agregar Materia Prima</h5>
-          <b-input-group size="sm"
-            ><b-form-select
-              v-model="newSourceMaterial"
-              :options="sourceMaterialsList"
-            >
-              <b-form-select-option value="Nombre" hidden disabled
-                >Nombre</b-form-select-option
-              > </b-form-select
-            ><b-input
-              type="number"
-              v-model="newSourceMaterialQuantity"
-              placeholder="Cantidad"
-            ></b-input
-          ></b-input-group>
-          <b-button
-            id="add-source-material"
-            :disabled="
-              newSourceMaterial === 'Nombre' ||
-                newSourceMaterial == undefined ||
-                newSourceMaterial == ''
-            "
-            variant="outline-secondary"
-            @click="addSourceMaterial()"
-            ><b-icon icon="plus"></b-icon
-          ></b-button>
-        </span>
-        <b-table
-          :items="Object.values(sourceMaterials)"
-          :fields="['name', 'howMuch']"
+        <b-input
+          v-model.number="profit"
+          class="select-inside-card"
+          type="number"
         >
-          <template #cell(name)="data">
-            <span
-              ><b-icon
-                style="cursor:pointer;color:rgb(208,6,6);"
-                icon="trash"
-                @click="deleteSourceMaterial(data.value)"
-              ></b-icon>
-              {{ data.value }}</span
-            >
-          </template>
-          <template #cell(howMuch)="data">
-            <b-input
-              :value="data.value"
-              @input="updateAmount(data.item.name, $event)"
-              type="number"
-            >
-            </b-input>
-          </template>
-          <template #head(howMuch)>
-            <span>Cantidad</span>
-          </template>
-          <template #head(name)>
-            <span>Nombre</span>
-          </template>
-        </b-table>
-      </b-card>
-      <b-card-group columns style="margin: 0 5vh 0!important">
-        <b-card
-          header="Color"
-          header-tag="h3"
-          border-variant="info"
-          align="center"
-        >
-          <b-form-select
-            v-model="characteristics.color"
-            :options="colors"
-          ></b-form-select>
-        </b-card>
-        <b-card
-          header="Calidad"
-          header-tag="h3"
-          border-variant="info"
-          align="center"
-        >
-          <b-form-select
-            v-model="characteristics.quality"
-            :options="qualities"
-          ></b-form-select>
-        </b-card>
-        <b-card
-          header="Tamaño"
-          header-tag="h3"
-          border-variant="info"
-          align="center"
-        >
-          <b-form-select
-            v-model="characteristics.size"
-            :options="sizes"
-          ></b-form-select>
-        </b-card>
-      </b-card-group>
+        </b-input>
+      </b-input-group>
+      <h5 class="mt-4">
+        Materias Primas que Lleva
+      </h5>
+      <b-form-select
+        :options="sourceMaterialsFiltered"
+        v-model="sourceMaterial"
+        class="mb-3"
+      >
+        <b-form-select-option selected disabled hidden value="Nombre">
+          Nombre
+        </b-form-select-option>
+      </b-form-select>
+      <b-input-group
+        class="mb-3"
+        :append="unitOfSourceMaterial ? `Por ${unitOfSourceMaterial}` : null"
+      >
+        <b-input
+          v-model="howMuch"
+          type="number"
+          placeholder="Cantidad de Materia Prima"
+        ></b-input>
+      </b-input-group>
+      <b-button
+        :disabled="!howMuch || sourceMaterial === 'Nombre'"
+        variant="info"
+        @click="pushSourceMaterial()"
+        >Agregar Materia Prima</b-button
+      >
+      <b-table responsive :items="sourceMaterialsListWithDropdown" caption-top>
+        <template #head(name)>Nombre</template>
+        <template #head(howMuch)>Cantidad</template>
+        <template #head(measurementUnit)>Unidad de Medida</template>
+        <template #head(opts)> {{ `` }}</template>
+        <template #cell(howMuch)="data">
+          <b-input
+            @input="updQuantity($event, data.item.name)"
+            :value="data.value.toLocaleString('es-AR')"
+          ></b-input>
+        </template>
+        <template #cell(opts)="data">
+          {{ data.value }}
+          <b-icon
+            style="cursor:pointer;"
+            icon="trash"
+            scale="1.2"
+            @click.stop="deleteSourceMaterial(data.item.name)"
+          >
+          </b-icon
+        ></template>
+      </b-table>
+      <b-button
+        pill
+        size="lg"
+        variant="success"
+        type="submit"
+        class="mb-2"
+        :disabled="
+          $v.$invalid === true || Object.keys(sourceMaterials).length === 0
+        "
+        >Guardar</b-button
+      >
     </div>
-  </div>
+    <span v-else>
+      <h2 style="text-align: center;">
+        Todavía no tenés Materias Primas Creadas
+        <router-link
+          style="color: rgb(10, 92, 173); text-align:center; margin-top: 10px;"
+          to="/crear-materia-prima"
+        >
+          <h2 style="font-size: 4rem;">
+            ¡Crealas!
+          </h2>
+        </router-link>
+      </h2>
+    </span>
+  </form>
 </template>
 
 <script>
-  import { db } from "../../firebase/firebase";
-
+  import { db } from "../../firebase/firebase.js";
+  import { required } from "vuelidate/lib/validators";
   export default {
+    name: "create-product",
     data() {
       return {
-        characteristics: undefined,
-        price: 0,
-        sourceMaterials: undefined,
-        qualities: ["Alta", "Media", "Baja"],
-        colors: ["Beige", "Azul", "Blanco"],
+        name: undefined,
+        submitStatus: null,
+        sourceMaterials: {},
+        sourceMaterial: "Nombre",
+        howMuch: undefined,
         sizes: ["Grande", "Mediano", "Pequeño"],
-        newSourceMaterial: "Nombre",
-        newSourceMaterialQuantity: undefined,
-        sourceMaterialsList: undefined,
+        size: undefined,
+        colors: ["Blanco", "Azul", "Beige"],
+        color: undefined,
+        qualities: ["Alta", "Media", "Baja"],
+        quality: undefined,
+        type: "Tipo de producto",
+        types: ["Sss", "Aaaa"],
+        unitOfSourceMaterial: null,
+        sourceMaterialMeasurementUnit: null,
+        profit: undefined,
+        finalPrice: undefined,
       };
     },
-    methods: {
-      async deleteSourceMaterial(name) {
-        await db
-          .ref(
-            `users/${this.$store.getters["user/userProfile"].uid}/products/${this.$store.state.nameOfActualItem}/sourceMaterials/${name}`
-          )
-          .set(null);
-        this.setItems();
+    validations: {
+      name: {
+        required,
       },
-      async addSourceMaterial() {
-        let measurementUnit = await db
-          .ref(
-            `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${this.newSourceMaterial}/price/measurementUnit`
-          )
-          .once("value");
-        db.ref(
-          `users/${this.$store.getters["user/userProfile"].uid}/products/${this.$store.state.nameOfActualItem}/sourceMaterials/${this.newSourceMaterial}`
-        ).set({
-          name: this.newSourceMaterial,
-          howMuch: this.newSourceMaterialQuantity,
-          measurementUnit: measurementUnit.val(),
-        });
-        await this.setItems();
-        this.newSourceMaterialQuantity = "";
-        this.newSourceMaterial = "Nombre";
+      profit: {
+        required,
       },
-      updateAmount(name, newAmount) {
-        db.ref(
-          `users/${this.$store.getters["user/userProfile"].uid}/products/${this.$store.state.nameOfActualItem}/sourceMaterials/${name}/howMuch`
-        ).set(Number(newAmount));
+      size: {
+        required,
       },
-      async setItems() {
-        await db
-          .ref(
-            `users/${this.$store.getters["user/userProfile"].uid}/products/${this.$store.state.nameOfActualItem}`
-          )
-          .on("value", (snapshot) => {
-            this.characteristics = snapshot.val().characteristics;
-            this.sourceMaterials = snapshot.val().sourceMaterials;
-          });
-
-        let sourceMaterialsQuery = await db
-          .ref(
-            `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials`
-          )
-          .once("value");
-        let allSourceMaterials = Object.keys(sourceMaterialsQuery.val()).concat(
-          Object.keys(this.sourceMaterials)
-        );
-        let duplicates = allSourceMaterials.filter(
-          (item, index) => allSourceMaterials.indexOf(item) != index
-        );
-
-        let allSourceMaterialsWithUniqueValues = [
-          ...new Set(allSourceMaterials),
-        ];
-        this.sourceMaterialsList = allSourceMaterialsWithUniqueValues.filter(
-          (el) => !duplicates.includes(el)
-        );
+      color: {
+        required,
+      },
+      quality: {
+        required,
+      },
+      sourceMaterials: {
+        required,
       },
     },
-    created() {
-      this.setItems();
+    async created() {
+      this.$store.dispatch("setSourceMaterials");
+      let product_query = await db
+        .ref(
+          `users/${this.$store.getters["user/userProfile"].uid}/products/${this.$store.state.nameOfActualItem}`
+        )
+        .once("value");
+      ({
+        name: this.name,
+        profit: this.profit,
+        type: this.type,
+        sourceMaterials: this.sourceMaterials,
+      } = product_query.val());
+      this.size = product_query.val().characteristics.size;
+      this.color = product_query.val().characteristics.color;
+      this.quality = product_query.val().characteristics.quality;
+    },
+    computed: {
+      calOfFinalPrice() {
+        if (!this.profit || Object.keys(this.sourceMaterials) < 1) return false;
+        let prices = [];
+        for (const iterator of Object.values(this.sourceMaterials)) {
+          let price_query = db
+            .ref(
+              `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${iterator.name}/price/amount`
+            )
+            .once("value", (snap) => {
+              prices.push(
+                snap.val() * this.sourceMaterials[iterator.name].howMuch
+              );
+            });
+        }
+        let equation =
+          (1 + this.profit / 100) * prices.reduce((a, b) => a + b, 0);
+        return equation;
+      },
+      sourceMaterialsListWithDropdown() {
+        let result = [];
+        for (const iterator of Object.values(this.sourceMaterials)) {
+          result.push({ ...iterator, opts: "" });
+        }
+        return result;
+      },
+      sourceMaterialsFiltered() {
+        let merge = this.$store.state.sourceMaterials
+          .map((el) => el.name)
+          .concat(Object.keys(this.sourceMaterials));
+        let duplicates = merge.filter(
+          (item, index) => merge.indexOf(item) != index
+        );
+        let mergeUnique = [...new Set(merge)];
+        return mergeUnique.filter((el) => !duplicates.includes(el));
+      },
+    },
+    methods: {
+      async updQuantity(newQuantity, sourceMaterialName) {
+        if (!newQuantity || newQuantity === 0) {
+          Vue.delete(this.sourceMaterials, sourceMaterialName);
+        } else {
+          this.sourceMaterials[sourceMaterialName].howMuch = Number(
+            newQuantity.replace(",", ".")
+          );
+        }
+      },
+      sendData() {
+        this.$v.$touch();
+        if (this.$v.$invalid) {
+          this.submitStatus = "ERROR";
+        } else {
+          this.submitStatus = "OK";
+          var newKey = db
+            .ref()
+            .child("products")
+            .push().key;
+          let productData = {
+            name: this.name,
+            type: this.type,
+            sourceMaterials: this.sourceMaterials,
+            characteristics: {
+              color: this.color,
+              size: this.size,
+              quality: this.quality,
+            },
+            profit: this.profit,
+            id: newKey,
+          };
+          console.dir(productData);
+          let updates = {};
+          updates[
+            `users/${this.$store.getters["user/userProfile"].uid}/products/${this.name}`
+          ] = productData;
+          db.ref().update(updates);
+          this.$router.push("productos");
+        }
+      },
+      pushSourceMaterial(newMeasurementUnit) {
+        if (
+          this.sourceMaterial.$invalid !== "Nombre" &&
+          this.howMuch &&
+          this.sourceMaterial !== "Nombre"
+        ) {
+          this.$set(this.sourceMaterials, this.sourceMaterial, {
+            name: this.sourceMaterial,
+            howMuch: Number(this.howMuch.replace(",", ".")),
+            measurementUnit: this.unitOfSourceMaterial,
+          });
+          this.howMuch = "";
+          this.sourceMaterial = "Nombre";
+          this.unitOfSourceMaterial = null;
+        }
+      },
+      deleteSourceMaterial(name) {
+        this.$delete(this.sourceMaterials, name);
+      },
     },
     watch: {
-      characteristics: {
-        handler(newCharacteristics) {
+      sourceMaterial: {
+        handler(newVal) {
+          if (!newVal) return false;
           db.ref(
-            `users/${this.$store.getters["user/userProfile"].uid}/products/${this.$store.state.nameOfActualItem}/characteristics`
-          ).set(newCharacteristics);
+            `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${this.sourceMaterial}`
+          ).on("value", (snapshot) => {
+            let snap = snapshot.val();
+            if (!snap) return false;
+            this.unitOfSourceMaterial = snap.price.measurementUnit;
+          });
         },
-        deep: true,
+        immediate: true,
       },
     },
   };
 </script>
 
 <style scoped>
-  .card {
-    margin: 7vh 0;
-  }
-  .input-group > * {
-    max-width: 60vw;
-    margin: 0 1vw;
-  }
-  input {
-    text-align: center;
-    font-weight: 500;
-  }
   #container {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    min-height: 80vh;
+    padding-top: 20px;
+    min-height: 92.3vh;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  form > span {
+    display: flex;
+    align-items: center;
+    height: 85vh;
+    justify-content: center;
+  }
+
+  .input-group {
+    width: 80vw;
+  }
+  select {
+    width: 80vw;
+  }
+  * {
     text-align: center;
-  }
-  #add-source-material {
-    min-width: 10vw;
-    max-height: 4vh;
-    margin: 2vh 0;
-  }
-  #add-source-material > * {
-    vertical-align: baseline;
-    margin: -0.3vh 0 2vh 0;
   }
 </style>
