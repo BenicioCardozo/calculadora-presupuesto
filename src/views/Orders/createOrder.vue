@@ -136,28 +136,32 @@
         </b-icon>
       </h5>
     </span> -->
-    <b-button
-      pill
-      size="lg"
-      variant="success"
-      type="submit"
-      :disabled="
-        $v.$invalid === true || Object.values(kitsAndProducts).length < 1
-      "
-      >Agregar Pedido</b-button
-    >
+    <span>
+      <b-button
+        pill
+        size="lg"
+        variant="success"
+        type="submit"
+        :disabled="
+          $v.$invalid === true || Object.values(kitsAndProducts).length < 1
+        "
+        >Agregar Pedido</b-button
+      >
+      <cancelationButton redirectionForCancelation="/pedidos" />
+    </span>
   </form>
 </template>
 
 <script>
   import { db } from "../../firebase/firebase.js";
   import { required } from "vuelidate/lib/validators";
-
+  import cancelationButton from "../../components/cancelationButton.vue";
   export default {
-    name: "create-product",
+    components: { cancelationButton },
+    name: "create-order",
     data() {
       return {
-        client: "Cliente",
+        client: "",
         kit: "Kit",
         kits: {},
         products: {},
@@ -178,37 +182,31 @@
         let kits = this.kits;
         let products = this.products;
 
-        if (kits) {
-          for (const iterator in kits) {
-            let kitQuantity = Number(this.kits[iterator].quantity);
-            let costs = await this.getCostOfKit(iterator);
-            let kitPrice = await this.getFinalPriceOfKit(costs);
-            kitsPrices.push(kitPrice * kitQuantity);
-          }
+        for (const iterator in kits) {
+          let kitQuantity = Number(this.kits[iterator].quantity);
+          let costs = await this.getCostOfKit(iterator);
+          let kitPrice = await this.getFinalPriceOfKit(costs);
+          kitsPrices.push(kitPrice * kitQuantity);
         }
-        if (products) {
-          for (const key in products) {
-            let costOfProduct = await this.$store.dispatch(
-              "setProductPrice",
-              key
-            );
-            let profit = await db
-              .ref(
-                `users/${this.$store.getters["user/userProfile"].uid}/products/${key}/profit/`
-              )
-              .once("value");
-            profit = profit.val();
-            let priceOfProduct = ((1 + profit / 100) * costOfProduct)
-              .toFixed(2)
-              .toLocaleString("es-AR");
-            let quantity = this.products[key].quantity;
-            productsPrices.push(priceOfProduct * quantity);
-          }
+
+        for (const key in products) {
+          let costOfProduct = await this.$store.dispatch(
+            "setProductPrice",
+            key
+          );
+          let profit = await db
+            .ref(
+              `users/${this.$store.getters["user/userProfile"].uid}/products/${key}/profit/`
+            )
+            .once("value");
+          profit = profit.val();
+          let priceOfProduct = ((1 + profit / 100) * costOfProduct)
+            .toFixed(2)
+            .toLocaleString("es-AR");
+          let quantity = this.products[key].quantity;
+          productsPrices.push(priceOfProduct * quantity);
         }
-        console.log(
-          kitsPrices.reduce((a, b) => a + b, 0) +
-            productsPrices.reduce((a, b) => a + b, 0)
-        );
+
         return (
           kitsPrices.reduce((a, b) => a + b, 0) +
           productsPrices.reduce((a, b) => a + b, 0)
@@ -245,13 +243,10 @@
         required,
       },
     },
-    created() {
-      this.$store.dispatch("setKits");
-      this.$store.dispatch("setClients");
-      this.$store.dispatch("setProducts");
-    },
-
     methods: {
+      recomputePriceProperty() {
+        return this.price;
+      },
       async getCostOfKit(kit) {
         let products = await db
           .ref(
@@ -291,10 +286,16 @@
         return kits_prices;
       },
       updQuantity(newQuantity, name) {
+        let isiTInKits = this.kits[name];
         if (!newQuantity || newQuantity === 0) {
-          this.$delete(this.seeKits ? this.kits : this.products, name);
+          this.$delete(
+            isiTInKits !== undefined ? this.kits : this.products,
+            name
+          );
         } else {
-          (this.seeKits ? this.kits : this.products)[name].quantity = Number(
+          (isiTInKits !== undefined ? this.kits : this.products)[
+            name
+          ].quantity = Number(
             newQuantity
               .replace(/,/g, "_")
               .replace(/\./g, "")
@@ -319,7 +320,7 @@
           importance: this.importance,
           id: newKey,
           status: "Pendiente",
-          price: this.price,
+          price: this.recomputePriceProperty(),
         };
 
         let updates = {};
@@ -381,5 +382,10 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+  }
+  form > span {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
   }
 </style>

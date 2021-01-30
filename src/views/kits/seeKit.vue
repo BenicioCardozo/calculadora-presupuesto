@@ -81,22 +81,27 @@
         </h5>
       </b-card>
     </div>
-    <b-button
-      pill
-      size="lg"
-      class="mb-2"
-      variant="success"
-      type="submit"
-      :disabled="$v.$invalid === true || Object.keys(products).length === 0"
-      >Guardar Kit</b-button
-    >
+    <span>
+      <b-button
+        pill
+        size="lg"
+        class="mb-2"
+        variant="success"
+        type="submit"
+        :disabled="$v.$invalid === true || Object.keys(products).length === 0"
+        >Guardar Kit</b-button
+      >
+      <cancelationButton redirectionForCancelation="/kits" />
+    </span>
   </form>
 </template>
 
 <script>
   import { db } from "../../firebase/firebase.js";
   import { required } from "vuelidate/lib/validators";
+  import cancelationButton from "../../components/cancelationButton.vue";
   export default {
+    components: { cancelationButton },
     name: "create-product",
     data() {
       return {
@@ -115,8 +120,6 @@
       },
     },
     async created() {
-      this.$store.dispatch("setProducts");
-
       let kit_info = await db
         .ref(
           `users/${this.$store.getters["user/userProfile"].uid}/kits/${this.$store.state.nameOfActualItem}`
@@ -266,5 +269,10 @@
     flex-flow: column nowrap;
     align-items: center;
     justify-content: space-around;
+  }
+  form > span {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
   }
 </style>

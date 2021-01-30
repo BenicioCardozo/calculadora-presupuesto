@@ -37,6 +37,7 @@
 </script>
 
 <style scoped>
+  @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;1,300&display=swap");
   main {
     position: absolute;
     left: 50%;
@@ -45,8 +46,8 @@
     display: flex;
     flex-direction: column;
     min-height: 50vh;
-    min-width: 30vw;
     align-items: center;
+    z-index: -1000;
     box-shadow: 1em 1em 1em 1em rgba(0, 0, 0, 0.096);
   }
   button {
@@ -57,5 +58,13 @@
 
   main h2 {
     margin: 5vh 0;
+    font-size: 2rem;
+    font-family: "Montserrat", sans-serif;
+    font-weight: bold;
+  }
+  @media (min-width: 1110px) {
+    main {
+      width: 270px;
+    }
   }
 </style>

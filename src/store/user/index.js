@@ -30,7 +30,6 @@ const actions = {
     const provider = new firebase.auth.GoogleAuthProvider();
     try {
       await firebase.auth().signInWithPopup(provider);
-      router.push("/materias-primas");
     } catch (error) {
       console.log(error);
     }

@@ -59,7 +59,6 @@
   import { db } from "../../firebase/firebase.js";
   import { mapState } from "vuex";
   import filterItems from "../../components/filterItems";
-  import Vue from "vue";
 
   export default {
     name: "clients",
@@ -74,7 +73,6 @@
       };
     },
     created() {
-      this.$store.dispatch("setClients");
       this.setItems(this.clients);
     },
     computed: {
@@ -114,10 +112,13 @@
           this.itemsToShow = this.items;
         });
       },
-      deleteClient(name) {
-        db.ref(
-          `users/${this.$store.getters["user/userProfile"].uid}/clients/${name.item.id}`
-        ).remove();
+      async deleteClient(name) {
+        await db
+          .ref(
+            `users/${this.$store.getters["user/userProfile"].uid}/clients/${name.item.ID}`
+          )
+          .remove();
+        this.setItems(this.clients);
       },
       editClient(name) {
         console.log(name.item.ID);

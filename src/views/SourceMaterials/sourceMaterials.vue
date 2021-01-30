@@ -19,7 +19,6 @@
             'Mano de Obra',
           ],
         }"
-        @setItems="setItems"
         :filtersOpt="[
           { type: 'Precio', name: 'Costo' },
           { name: 'Tipo', type: 'Tipo' },
@@ -100,7 +99,6 @@
   import { db } from "../../firebase/firebase.js";
   import { mapState } from "vuex";
   import filterItems from "../../components/filterItems";
-  import Vue from "vue";
   export default {
     name: "source-materials",
     components: {
@@ -118,7 +116,6 @@
           "precio",
           "opt",
         ],
-        items: [],
         itemsToShow: [],
         sourceMaterialsWithProducts: undefined,
         showAlert: false,
@@ -126,11 +123,26 @@
         sourceMaterialToEliminate: undefined,
       };
     },
-    created() {
-      this.$store.dispatch("setSourceMaterials");
-    },
+
     computed: {
       ...mapState(["sourceMaterials"]),
+      items() {
+        let items = [];
+        this.sourceMaterials.forEach((element) => {
+          items.push({
+            ID: element.id.substr(13, element.id.length),
+            nombre: element.name,
+            color: element.characteristics.color,
+            calidad: element.characteristics.quality,
+            tipo: element.characteristics.type,
+            proveedor: element.characteristics.supplier,
+            precio: `$${element.price.amount}/${element.price.measurementUnit}`,
+            opt: null,
+          });
+        });
+        this.itemsToShow = items;
+        return items;
+      },
       productsText() {
         if (!this.sourceMaterialsWithProducts) return false;
         if (
@@ -146,7 +158,9 @@
         }
       },
     },
+
     async mounted() {
+      //For Prompt
       let result = [];
       let products_req = await db
         .ref(`users/${this.$store.getters["user/userProfile"].uid}/products`)
@@ -177,14 +191,6 @@
       }
       this.sourceMaterialsWithProducts = result;
     },
-    watch: {
-      sourceMaterials: {
-        handler(newItems) {
-          this.setItems(newItems);
-        },
-        immediate: true,
-      },
-    },
     methods: {
       async handleRemoval() {
         await db
@@ -210,25 +216,6 @@
       editSourceMaterial(sourceMaterial) {
         this.$store.commit("changeName", sourceMaterial.item.nombre);
         this.$router.push("ver-materia-prima");
-      },
-
-      setItems(itemsWithoutFormat) {
-        if (!itemsWithoutFormat.characteristics) {
-          this.items = [];
-          itemsWithoutFormat.forEach((element) => {
-            this.items.push({
-              ID: element.id.substr(13, element.id.length),
-              nombre: element.name,
-              color: element.characteristics.color,
-              calidad: element.characteristics.quality,
-              tipo: element.characteristics.type,
-              proveedor: element.characteristics.supplier,
-              precio: `$${element.price.amount}/${element.price.measurementUnit}`,
-              opt: null,
-            });
-          });
-          this.itemsToShow = this.items;
-        }
       },
     },
   };

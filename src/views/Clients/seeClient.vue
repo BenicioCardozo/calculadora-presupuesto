@@ -87,21 +87,17 @@
       v-model="company"
     ></b-input>
     <b-textarea v-model="notes" placeholder="Observaciones"> </b-textarea>
-    <span id="buttons">
+    <span>
       <b-button
         :disabled="isNotValid"
-        pill
-        size="lg"
         variant="success"
-        type="submit"
-        >Guardar</b-button
-      ><b-button
-        @click="handleCancelation()"
-        pill
         size="lg"
-        variant="outline-danger"
-        >Cancelar</b-button
+        pill
+        type="submit"
       >
+        Agregar
+      </b-button>
+      <cancelationButton redirectionForCancelation="/clientes" />
     </span>
   </form>
 </template>
@@ -109,8 +105,9 @@
 <script>
   import { db } from "../../firebase/firebase.js";
   import { required } from "vuelidate/lib/validators";
-
+  import cancelationButton from "../../components/cancelationButton.vue";
   export default {
+    components: { cancelationButton },
     name: "create-client",
     data() {
       return {
@@ -235,12 +232,6 @@
   div > input {
     margin: 1px 20px 14px 1px;
   }
-  form > span:first {
-    display: flex;
-    align-items: center;
-    height: 80vh;
-    justify-content: center;
-  }
   .input-group,
   textarea {
     max-width: 80vw;
@@ -252,9 +243,9 @@
     margin: 0 1vw 0 1vw;
     padding: 1vh;
   }
-  #buttons {
-    width: 100%;
+  form > span {
     display: flex;
-    justify-content: space-evenly;
+    justify-content: space-around;
+    width: 100%;
   }
 </style>

@@ -14,10 +14,39 @@ export default new Vuex.Store({
     sourceMaterials: [],
     clients: [],
     kits: [],
+    suppliers: [],
     nameOfActualItem: undefined,
     orders: undefined,
   },
   mutations: {
+    setSuppliers: (state) => {
+      let suppliers = [];
+      db.ref(`users/${state.user.userProfile.uid}/suppliers`).on(
+        "value",
+        (snapshot) => {
+          suppliers = [];
+          if (snapshot.val()) {
+            for (const key in snapshot.val()) {
+              const supplier = snapshot.val()[key];
+              suppliers.push({
+                name: supplier.name,
+                notes: supplier.notes,
+                loc: supplier.loc,
+                characteristics: {
+                  address: supplier.address,
+                  phoneNumber: supplier.phoneNumber,
+                  id: supplier.id,
+                  company: supplier.company,
+                },
+              });
+              state.suppliers = suppliers;
+            }
+          } else {
+            state.suppliers = undefined;
+          }
+        }
+      );
+    },
     setOrders: (state) => {
       let orders = [];
 
@@ -80,7 +109,6 @@ export default new Vuex.Store({
           if (snapshot.val()) {
             for (const key in snapshot.val()) {
               const client = snapshot.val()[key];
-              console.log(client);
               clients.push({
                 name: client.name,
                 notes: client.notes,
@@ -228,6 +256,9 @@ export default new Vuex.Store({
     },
     setOrders: (state) => {
       state.commit("setOrders");
+    },
+    setSuppliers: (state) => {
+      state.commit("setSuppliers");
     },
   },
 });

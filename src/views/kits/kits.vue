@@ -113,9 +113,7 @@
         showComplete: [],
       };
     },
-    created() {
-      this.$store.dispatch("setKits");
-    },
+
     computed: {
       ...mapState(["kits"]),
       productsText() {

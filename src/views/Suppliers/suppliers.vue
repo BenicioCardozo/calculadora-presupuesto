@@ -5,7 +5,6 @@
       :methodOpt="{
         types: this.allLocations,
       }"
-      @setItems="setItems"
       :filtersOpt="[
         {
           type: 'Tipo',
@@ -73,7 +72,6 @@
       };
     },
     created() {
-      this.$store.dispatch("setSuppliers");
       this.setItems(this.suppliers);
     },
     computed: {

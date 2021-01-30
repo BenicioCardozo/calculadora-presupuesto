@@ -5,9 +5,16 @@
       <filterItems
         :methodOpt="{
           price: ['<', '>'],
+          types: ['Entregado', 'Pendiente'],
         }"
-        @setItems="setItems"
-        :filtersOpt="[{ type: 'Precio', name: 'Precio' }]"
+        :filtersOpt="[
+          { type: 'Precio', name: 'Precio' },
+          {
+            type: 'Tipo',
+            name: 'Status',
+            propToCompare: 'status',
+          },
+        ]"
         :items.sync="items"
         :itemsToShow.sync="itemsToShow"
         action="/crear-pedido"
@@ -111,9 +118,7 @@
         },
       };
     },
-    created() {
-      this.$store.dispatch("setOrders");
-    },
+
     computed: {
       ...mapState(["orders"]),
       async productAndKitsText() {
@@ -121,21 +126,15 @@
           let paragraphsOfKitsAndProduct = {};
           for (const nameOfActualItem of this.orders) {
             paragraphsOfKitsAndProduct[nameOfActualItem.id] = {};
-            let queryProducts = await db
-              .ref(
-                `users/${this.$store.getters["user/userProfile"].uid}/orders/${nameOfActualItem.id}/products`
-              )
-              .once("value");
-
-            let queryKits = await db
-              .ref(
-                `users/${this.$store.getters["user/userProfile"].uid}/orders/${nameOfActualItem.id}/kits`
-              )
-              .once("value");
-
-            if (queryProducts.val()) {
-              let productsArray = Object.keys(queryProducts.val()).map((el) => {
-                return `${el}:&nbsp;${queryProducts.val()[el].quantity} <br/>`;
+            let queryProducts = this.$store.state.orders.find(
+              (el) => el.id === nameOfActualItem.id
+            ).products;
+            let queryKits = this.$store.state.orders.find(
+              (el) => el.id === nameOfActualItem.id
+            ).kits;
+            if (queryProducts) {
+              let productsArray = Object.values(queryProducts).map((el) => {
+                return `${el}:&nbsp;${queryProducts[el.name].quantity} <br/>`;
               });
               let productsParagraph = productsArray
                 ? productsArray.join(", ")
@@ -145,9 +144,9 @@
                 nameOfActualItem.id
               ].products = productsParagraph;
             }
-            if (queryKits.val()) {
-              let kitsArray = Object.keys(queryKits.val()).map((el) => {
-                return `${el}:&nbsp;${queryKits.val()[el].quantity} <br/>`;
+            if (queryKits) {
+              let kitsArray = Object.values(queryKits).map((el) => {
+                return `${el.name}:&nbsp;${queryKits[el.name].quantity} <br/>`;
               });
               let kitsParagraph = kitsArray ? kitsArray.join("") : "-";
               paragraphsOfKitsAndProduct[
@@ -160,10 +159,8 @@
         }
       },
     },
-    watch: {
-      orders() {
-        this.setItems();
-      },
+    created() {
+      this.setItems();
     },
     methods: {
       isItDelayed(date) {

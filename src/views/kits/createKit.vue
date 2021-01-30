@@ -1,6 +1,6 @@
 <template>
   <form @submit.prevent="sendData()" novalidate>
-    <b-input-group prepend="Nombre del Kit">
+    <b-input-group class="mb-3" prepend="Nombre del Kit">
       <b-input
         @input="$v.nameKit.$touch"
         :style="[
@@ -8,7 +8,6 @@
         ]"
         type="text"
         v-model="nameKit"
-        class="mb-3"
       ></b-input
     ></b-input-group>
     <div class="products-form">
@@ -81,23 +80,28 @@
         </h5>
       </b-card>
     </div>
-    <b-button
-      pill
-      size="lg"
-      class="mb-2"
-      variant="success"
-      type="submit"
-      :disabled="$v.$invalid === true || Object.keys(products).length === 0"
-      >Agregar Kit</b-button
-    >
+    <span>
+      <b-button
+        pill
+        size="lg"
+        class="mb-2"
+        variant="success"
+        type="submit"
+        :disabled="$v.$invalid === true || Object.keys(products).length === 0"
+        >Agregar Kit</b-button
+      >
+      <cancelationButton redirectionForCancelation="/kits" />
+    </span>
   </form>
 </template>
 
 <script>
   import { db } from "../../firebase/firebase.js";
   import { required } from "vuelidate/lib/validators";
+  import cancelationButton from "../../components/cancelationButton.vue";
   export default {
-    name: "create-product",
+    components: { cancelationButton },
+    name: "create-kit",
     data() {
       return {
         nameKit: undefined,
@@ -174,9 +178,7 @@
         return result;
       },
     },
-    created() {
-      this.$store.dispatch("setProducts");
-    },
+
     methods: {
       getFinalPrice({ price, profit }) {
         return ((1 + profit / 100) * price).toFixed(2).toLocaleString("es-AR");
@@ -235,6 +237,11 @@
 <style scoped>
   * {
     text-align: center;
+  }
+  form > span {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
   }
   .card {
     min-width: 50vw;

@@ -15,6 +15,14 @@
   import navbar from "./components/navbar";
 
   export default {
+    beforeCreate() {
+      this.$store.dispatch("setProducts");
+      this.$store.dispatch("setSourceMaterials");
+      this.$store.dispatch("setKits");
+      this.$store.dispatch("setOrders");
+      this.$store.dispatch("setSuppliers");
+      this.$store.dispatch("setClients");
+    },
     components: {
       navbar,
     },

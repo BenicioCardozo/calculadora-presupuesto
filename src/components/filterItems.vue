@@ -157,10 +157,6 @@
   .buttons-header > * {
     margin: 1.2vh 0 2vh 0;
   }
-  h6,
-  input[type="datepicker"] {
-    margin: 0;
-  }
   .buttons-header {
     display: flex;
     flex-flow: row wrap;

@@ -20,7 +20,7 @@
           <router-link to="/materias-primas">Materias Primas</router-link>
         </b-nav-item>
         <b-nav-item href="#" class="m-auto">
-          <router-link to="/suppliers">Proveedores</router-link>
+          <router-link to="/proveedores">Proveedores</router-link>
         </b-nav-item>
         <b-nav-form class="m-auto login-buttons">
           <b-button v-if="!loggedIn" variant="primary" @click="login"

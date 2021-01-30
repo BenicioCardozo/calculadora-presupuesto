@@ -17,6 +17,9 @@ import createOrder from "../views/Orders/createOrder.vue";
 import seeOrder from "../views/Orders/seeOrder.vue";
 import login from "../views/Users/login.vue";
 import { auth } from "../firebase/firebase";
+import seeSupplier from "../views/Suppliers/seeSupplier.vue";
+import createSupplier from "../views/Suppliers/createSupplier.vue";
+import suppliers from "../views/Suppliers/suppliers.vue";
 
 Vue.use(VueRouter);
 
@@ -130,6 +133,27 @@ const routes = [
   {
     path: "/ver-pedido",
     component: seeOrder,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: "/proveedores",
+    component: suppliers,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: "/ver-proveedor",
+    component: seeSupplier,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: "/crear-proveedor",
+    component: createSupplier,
     meta: {
       requiresAuth: true,
     },

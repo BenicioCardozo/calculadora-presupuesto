@@ -8,7 +8,7 @@
       </b-form-select>
     </b-input-group>
     <b-input-group class="mb-3" prepend="Proveedor">
-      <b-form-input v-model="supplier"> </b-form-input>
+      <b-form-select :options="supplierOpt" v-model="supplier"> </b-form-select>
     </b-input-group>
     <b-input-group class="mb-3" prepend="Color">
       <b-form-select v-model="color" :options="colors"> </b-form-select>
@@ -35,22 +35,27 @@
         >
       </b-dropdown>
     </b-input-group>
-    <b-button
-      :disabled="isFormValid === false"
-      variant="success"
-      size="lg"
-      pill
-      @click.prevent="sendData()"
-      type="submit"
-    >
-      Guardar
-    </b-button>
+    <span>
+      <b-button
+        :disabled="isFormValid === false"
+        variant="success"
+        size="lg"
+        pill
+        @click.prevent="sendData()"
+        type="submit"
+      >
+        Guardar
+      </b-button>
+      <cancelationButton redirectionForCancelation="/materias-primas" />
+    </span>
   </b-form>
 </template>
 
 <script>
   import { db } from "../../firebase/firebase";
+  import cancelationButton from "../../components/cancelationButton.vue";
   export default {
+    components: { cancelationButton },
     data() {
       return {
         name: null,
@@ -58,6 +63,7 @@
         quality: null,
         type: null,
         supplier: null,
+        supplierOpt: [],
         price: {
           amount: undefined,
           measurementUnit: undefined,
@@ -94,6 +100,10 @@
       this.quality = res.characteristics.quality;
       this.price.measurementUnit = res.price.measurementUnit;
       this.price.amount = res.price.amount;
+
+      this.$store.state.suppliers.forEach((element) => {
+        this.supplierOpt.push(element.name);
+      });
     },
     computed: {
       isFormValid() {
@@ -151,5 +161,10 @@
   }
   .input-group {
     width: 90% !important;
+  }
+  form > span {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
   }
 </style>

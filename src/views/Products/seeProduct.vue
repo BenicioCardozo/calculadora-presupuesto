@@ -39,16 +39,7 @@
         >
         </b-form-select>
       </b-input-group>
-      <b-input-group
-        prepend="Margen de Ganancia"
-        :append="
-          `% ${
-            calOfFinalPrice
-              ? `(Precio Final $${calOfFinalPrice.toFixed(2)})`
-              : ''
-          }`
-        "
-      >
+      <b-input-group prepend="Margen de Ganancia" :append="`% `">
         <b-input
           v-model.number="profit"
           class="select-inside-card"
@@ -106,17 +97,21 @@
           </b-icon
         ></template>
       </b-table>
-      <b-button
-        pill
-        size="lg"
-        variant="success"
-        type="submit"
-        class="mb-2"
-        :disabled="
-          $v.$invalid === true || Object.keys(sourceMaterials).length === 0
-        "
-        >Guardar</b-button
-      >
+      <span>
+        <b-button
+          :disabled="
+            $v.$invalid === true || Object.keys(sourceMaterials).length === 0
+          "
+          variant="success"
+          size="lg"
+          pill
+          class="mb-2"
+          type="submit"
+        >
+          Guardar
+        </b-button>
+        <cancelationButton redirectionForCancelation="/productos" />
+      </span>
     </div>
     <span v-else>
       <h2 style="text-align: center;">
@@ -137,7 +132,9 @@
 <script>
   import { db } from "../../firebase/firebase.js";
   import { required } from "vuelidate/lib/validators";
+  import cancelationButton from "../../components/cancelationButton.vue";
   export default {
+    components: { cancelationButton },
     name: "create-product",
     data() {
       return {
@@ -181,7 +178,6 @@
       },
     },
     async created() {
-      this.$store.dispatch("setSourceMaterials");
       let product_query = await db
         .ref(
           `users/${this.$store.getters["user/userProfile"].uid}/products/${this.$store.state.nameOfActualItem}`
@@ -198,24 +194,24 @@
       this.quality = product_query.val().characteristics.quality;
     },
     computed: {
-      calOfFinalPrice() {
-        if (!this.profit || Object.keys(this.sourceMaterials) < 1) return false;
-        let prices = [];
-        for (const iterator of Object.values(this.sourceMaterials)) {
-          let price_query = db
-            .ref(
-              `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${iterator.name}/price/amount`
-            )
-            .once("value", (snap) => {
-              prices.push(
-                snap.val() * this.sourceMaterials[iterator.name].howMuch
-              );
-            });
-        }
-        let equation =
-          (1 + this.profit / 100) * prices.reduce((a, b) => a + b, 0);
-        return equation;
-      },
+      // calOfFinalPrice() {
+      //   if (!this.profit || Object.keys(this.sourceMaterials) < 1) return false;
+      //   let prices = [];
+      //   for (const iterator of Object.values(this.sourceMaterials)) {
+      //     let price_query = db
+      //       .ref(
+      //         `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${iterator.name}/price/amount`
+      //       )
+      //       .once("value", (snap) => {
+      //         prices.push(
+      //           snap.val() * this.sourceMaterials[iterator.name].howMuch
+      //         );
+      //       });
+      //   }
+      //   let equation =
+      //     (1 + this.profit / 100) * prices.reduce((a, b) => a + b, 0);
+      //   return equation;
+      // },
       sourceMaterialsListWithDropdown() {
         let result = [];
         for (const iterator of Object.values(this.sourceMaterials)) {
@@ -266,7 +262,6 @@
             profit: this.profit,
             id: newKey,
           };
-          console.dir(productData);
           let updates = {};
           updates[
             `users/${this.$store.getters["user/userProfile"].uid}/products/${this.name}`
@@ -275,7 +270,7 @@
           this.$router.push("productos");
         }
       },
-      pushSourceMaterial(newMeasurementUnit) {
+      pushSourceMaterial() {
         if (
           this.sourceMaterial.$invalid !== "Nombre" &&
           this.howMuch &&
@@ -338,5 +333,10 @@
   }
   * {
     text-align: center;
+  }
+  form > div > span {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
   }
 </style>

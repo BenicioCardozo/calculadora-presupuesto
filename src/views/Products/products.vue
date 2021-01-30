@@ -7,7 +7,6 @@
           price: ['<', '>'],
           types: ['Sss', 'Aaaa'],
         }"
-        @setItems="setItems"
         :filtersOpt="[
           { type: 'Precio', name: 'Costo' },
           { name: 'Tipo', type: 'Tipo' },
@@ -27,7 +26,7 @@
       >
         <template #cell(materias_primas)="data">
           <span
-            v-if="data.value.length < 3"
+            v-if="data.value.length < 4"
             v-html="data.value.join('<br/>')"
           ></span>
           <div v-else>
@@ -129,64 +128,85 @@
           "ganancia",
           "opt",
         ],
-        items: [],
         itemsToShow: [],
-        prices: {},
         showComplete: [],
-        sourceMaterialsText: undefined,
       };
     },
-    created() {
-      this.$store.dispatch("setProducts");
-    },
+
     computed: {
+      items() {
+        let texts = this.sourceMaterialsText();
+        if (this.products) {
+          let items = [];
+          this.products.forEach(async (element) => {
+            let price = await this.prices();
+            price = Number(price[element.name]);
+            console.log(texts);
+
+            if (!element) return false;
+            items.push({
+              ID: element.id.substr(13),
+              nombre: element.name,
+              tipo: element.type,
+              color: element.characteristics.color,
+              calidad: element.characteristics.quality,
+              tamaño: element.characteristics.size,
+              materias_primas: texts[element.name],
+              precio: `$${price}`,
+              precio_final: `$${Number(
+                await this.getFinalPrice(element.name, element.profit)
+              ).toLocaleString("es-AR")}`,
+              margen_de_ganancia: `${element.profit.toLocaleString("es-AR")}%`, //Profit Margin *
+              ganancia: `$${Number(
+                (
+                  (await this.getFinalPrice(element.name, element.profit)) -
+                  price
+                ).toFixed(2)
+              ).toLocaleString("es-AR")}`,
+            });
+          });
+          this.itemsToShow = items;
+          return items;
+        }
+      },
       ...mapState(["products"]),
     },
 
-    watch: {
-      products: {
-        async handler(newVal) {
-          let result = {};
-          for (const key in newVal) {
-            const element = newVal[key];
-            let price = await this.$store.dispatch(
-              "setProductPrice",
-              element.name
-            );
-            result[element.name] = price;
-          }
-          this.prices = result;
-
-          if (newVal) {
-            let sourceMaterials = {};
-            for (const nameOfActualItem of newVal) {
-              let query = await db
-                .ref(
-                  `users/${this.$store.getters["user/userProfile"].uid}/products/${nameOfActualItem.name}/sourceMaterials`
-                )
-                .once("value");
-
-              let p = Object.keys(query.val()).map((el) => {
-                return `${el}:&nbsp;${Number(
-                  query.val()[el].howMuch
-                ).toLocaleString("es-AR")}`;
-              });
-
-              sourceMaterials[nameOfActualItem.name] = p;
-
-              this.showComplete.push({
-                name: nameOfActualItem.name,
-                show_all: false,
-              });
-            }
-            this.sourceMaterialsText = sourceMaterials;
-          }
-          this.setItems(newVal);
-        },
-        deep: true,
-      },
-    },
     methods: {
+      sourceMaterialsText() {
+        let sourceMaterials = {};
+        for (const nameOfActualItem of this.products) {
+          let query = this.$store.state.products.find(
+            (el) => el.name === nameOfActualItem.name
+          ).sourceMaterials;
+          let p = Object.keys(query).map((el) => {
+            return `${el}:&nbsp;${Number(query[el].howMuch).toLocaleString(
+              "es-AR"
+            )}`;
+          });
+
+          sourceMaterials[nameOfActualItem.name] = p;
+
+          this.showComplete.push({
+            name: nameOfActualItem.name,
+            show_all: false,
+          });
+        }
+
+        return sourceMaterials;
+      },
+      async prices() {
+        let result = {};
+        for (const key in this.products) {
+          const element = this.products[key];
+          let price = await this.$store.dispatch(
+            "setProductPrice",
+            element.name
+          );
+          result[element.name] = price;
+        }
+        return result;
+      },
       moreExpensiveSourceMaterials(array) {
         let prices = [];
         for (const iterator of array) {
@@ -208,41 +228,12 @@
         );
         return parapraph.join("<br>");
       },
-      getFinalPrice(name, profit) {
-        return ((1 + profit / 100) * this.prices[name])
+      async getFinalPrice(name, profit) {
+        let prices = await this.prices();
+        console.log(prices);
+        return ((1 + profit / 100) * prices[name])
           .toFixed(2)
           .toLocaleString("es-AR");
-      },
-      setItems() {
-        this.items = [];
-        let itemsWithoutFormat = this.products;
-        if (itemsWithoutFormat) {
-          itemsWithoutFormat.forEach(async (element) => {
-            let precio = Number(this.prices[element.name]);
-            let sourceMaterials = this.sourceMaterialsText;
-            if (!element) return false;
-            this.items.push({
-              ID: element.id.substr(13),
-              nombre: element.name,
-              tipo: element.type,
-              color: element.characteristics.color,
-              calidad: element.characteristics.quality,
-              tamaño: element.characteristics.size,
-              materias_primas: sourceMaterials[element.name],
-              precio: `$${precio}`,
-              precio_final: `$${Number(
-                this.getFinalPrice(element.name, element.profit)
-              ).toLocaleString("es-AR")}`,
-              margen_de_ganancia: `${element.profit.toLocaleString("es-AR")}%`, //Profit Margin *
-              ganancia: `$${Number(
-                (
-                  this.getFinalPrice(element.name, element.profit) - precio
-                ).toFixed(2)
-              ).toLocaleString("es-AR")}`,
-            });
-            this.itemsToShow = this.items;
-          });
-        }
       },
       deleteProduct(product) {
         db.ref(
