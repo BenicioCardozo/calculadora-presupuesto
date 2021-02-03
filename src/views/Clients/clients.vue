@@ -5,7 +5,6 @@
       :methodOpt="{
         types: this.allLocations,
       }"
-      @setItems="setItems"
       :filtersOpt="[
         {
           type: 'Tipo',
@@ -97,6 +96,10 @@
       setItems(itemsWithoutFormat) {
         this.items = [];
         if (!itemsWithoutFormat) return false;
+        if (itemsWithoutFormat.length === 0) {
+          this.items = [];
+          this.itemsToShow = [];
+        }
         itemsWithoutFormat.forEach((element) => {
           if (!element.characteristics.id) return false;
           this.items.push({
@@ -121,7 +124,6 @@
         this.setItems(this.clients);
       },
       editClient(name) {
-        console.log(name.item.ID);
         this.$store.commit("changeName", name.item.ID);
         this.$router.push("ver-cliente");
       },
