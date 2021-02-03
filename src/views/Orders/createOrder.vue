@@ -19,7 +19,6 @@
       <b-form-datepicker
         v-model="deliveryTime"
         :min="today"
-        language
         :date-format-options="{
           year: undefined,
           month: 'long',
@@ -28,6 +27,7 @@
         }"
         hide-header
         locale="es-AR"
+        value-as-date
         placeholder=""
       ></b-form-datepicker>
     </b-input-group>
@@ -121,21 +121,6 @@
       class="mb-2"
       >Agregar {{ subtitle.slice(0, -1) }}</b-button
     >
-    <!-- <span
-      v-if="Object.keys(kitsAndProducts).length > 0"
-      style="display:flex; justify-content: space-around;width:80vw;"
-    >
-      <h5 :key="kit.name" v-for="kit in kitsAndProducts">
-        {{ `${kit.name}  ${kit.quantity} ` }}
-        <b-icon
-          style="cursor:pointer;"
-          icon="trash"
-          scale="1.1"
-          @click.stop="deleteKitOrProduct(kit.name)"
-        >
-        </b-icon>
-      </h5>
-    </span> -->
     <span>
       <b-button
         pill
@@ -215,15 +200,7 @@
     },
     computed: {
       today() {
-        const now = new Date();
-        const today = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate()
-        );
-        const minDate = new Date(today);
-
-        return minDate;
+        return new Date();
       },
       subtitle() {
         return this.seeKits ? "Kits" : "Productos";
@@ -312,32 +289,23 @@
           .push().key;
         let now = new Date();
         let orderData = {
-          deliveryTime: this.toLocaleDate(this.deliveryTime),
+          deliveryTime: this.deliveryTime.toString(),
           client: this.client,
           kits: this.kits,
           products: this.products,
-          createdAt: `${this.toLocaleDate(now)}`,
+          createdAt: now.toString(),
           importance: this.importance,
           id: newKey,
           status: "Pendiente",
           price: this.recomputePriceProperty(),
         };
-
+        console.log(orderData.deliveryTime);
         let updates = {};
         updates[
           `users/${this.$store.getters["user/userProfile"].uid}/orders/${newKey}`
         ] = orderData;
         db.ref().update(updates);
         this.$router.push("pedidos");
-      },
-      toLocaleDate(date) {
-        console.log(date);
-        const options = {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        };
-        return new Date(date).toLocaleDateString("es-AR", options);
       },
       pushKit() {
         if (this.seeKits) {

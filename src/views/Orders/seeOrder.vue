@@ -19,7 +19,6 @@
       <b-form-datepicker
         v-model="deliveryTime"
         :min="today"
-        language
         :date-format-options="{
           year: undefined,
           month: 'long',
@@ -29,6 +28,7 @@
         hide-header
         locale="es-AR"
         placeholder=""
+        value-as-date
       ></b-form-datepicker>
     </b-input-group>
 
@@ -116,7 +116,7 @@
     </b-table>
     <b-button
       :disabled="!quantity || kit === 'Kit'"
-      @click="pushKit()"
+      @click="pushItem()"
       variant="info"
       class="mb-2"
       >Agregar {{ subtitle.slice(0, -1) }}</b-button
@@ -233,15 +233,7 @@
     },
     computed: {
       today() {
-        const now = new Date();
-        const today = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate()
-        );
-        const minDate = new Date(today);
-
-        return minDate;
+        return new Date();
       },
       subtitle() {
         return this.seeKits ? "Kits" : "Productos";
@@ -275,10 +267,7 @@
       this.importance = order_info.importance;
       this.id = order_info.id;
       this.client = order_info.client;
-      let deliveryTimeParts = order_info.deliveryTime.split(" ");
-      this.deliveryTime = `${deliveryTimeParts[4]}-${
-        this.months[deliveryTimeParts[2]]
-      }-${Number(deliveryTimeParts[0]) + 1}`;
+      this.deliveryTime = new Date(order_info.deliveryTime);
       this.status = order_info.status;
     },
 
@@ -345,9 +334,8 @@
       sendData() {
         this.$v.$touch();
         this.submitStatus = "OK";
-
         let orderData = {
-          deliveryTime: this.toLocaleDate(this.deliveryTime),
+          deliveryTime: this.deliveryTime.toString(),
           client: this.client,
           kits: this.kits,
           products: this.products,
@@ -365,15 +353,8 @@
         db.ref().update(updates);
         this.$router.push("pedidos");
       },
-      toLocaleDate(date) {
-        const options = {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        };
-        return new Date(date).toLocaleDateString("es-AR", options);
-      },
-      pushKit() {
+
+      pushItem() {
         if (this.seeKits) {
           this.$set(this.kits, this.kit, {
             name: this.kit,
