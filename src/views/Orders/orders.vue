@@ -28,7 +28,7 @@
         }}</template>
         <template #cell(ID)="data">
           <b-td class="text-primary" style="white-space:nowrap;"
-            >{{ data.value.substr(13) }}
+            >{{ createId("PE", data.value) }}
           </b-td>
         </template>
         <template #head(opt)>{{ `` }}</template>
@@ -39,7 +39,7 @@
           <span v-html="data.value"></span>
         </template>
 
-        <template #cell(fecha_de_creación)="data">
+        <!-- <template #cell(fecha_de_creación)="data">
           <span>{{
             data.value.substring(0, data.value.lastIndexOf("de"))
           }}</span>
@@ -48,7 +48,7 @@
           <span>{{
             data.value.substring(0, data.value.lastIndexOf("de"))
           }}</span>
-        </template>
+        </template> -->
         <template #cell(opt)="data"
           ><b-dropdown right style="max-width:100%;" variant="white" no-caret>
             <template #button-content>
@@ -92,11 +92,20 @@
   import { db } from "../../firebase/firebase.js";
   import { mapState } from "vuex";
   import filterItems from "../../components/filterItems";
+  import createId from "../../mixins/idCreator.js";
+  import { format, compareAsc } from "date-fns";
+  import { es } from "date-fns/locale";
   export default {
     name: "orders",
+    mixins: [createId],
     components: { filterItems },
     data() {
       return {
+        dateUtils: {
+          format,
+          es,
+          compareAsc,
+        },
         items: [],
         itemsToShow: [],
         prices: {},
@@ -126,15 +135,13 @@
           let paragraphsOfKitsAndProduct = {};
           for (const nameOfActualItem of this.orders) {
             paragraphsOfKitsAndProduct[nameOfActualItem.id] = {};
-            let queryProducts = this.$store.state.orders.find(
-              (el) => el.id === nameOfActualItem.id
-            ).products;
-            let queryKits = this.$store.state.orders.find(
-              (el) => el.id === nameOfActualItem.id
-            ).kits;
+            let queryProducts = nameOfActualItem.products;
+            let queryKits = nameOfActualItem.kits;
             if (queryProducts) {
               let productsArray = Object.values(queryProducts).map((el) => {
-                return `${el}:&nbsp;${queryProducts[el.name].quantity} <br/>`;
+                return `${el.name}:&nbsp;${
+                  queryProducts[el.name].quantity
+                } <br/>`;
               });
               let productsParagraph = productsArray
                 ? productsArray.join(", ")
@@ -163,13 +170,18 @@
       this.setItems();
     },
     methods: {
-      isItDelayed(date) {
-        let parts = date.trim().split(" ");
-        const today = new Date().getTime(); //YYYY-MM-DD
-        const date_ms = new Date(
-          `${parts[4]}-${this.months[parts[2]]}-${Number(parts[0]) + 1}`
-        ).getTime();
-        return today > date_ms ? true : false;
+      formatDate(date) {
+        if (!date) return;
+        return this.dateUtils.format(new Date(date), "PPP", {
+          locale: this.dateUtils.es,
+        });
+      },
+      isItDelayed({ deliveryTime }) {
+        const comparation = this.dateUtils.compareAsc(
+          new Date(),
+          new Date(deliveryTime)
+        );
+        return comparation !== 1 ? false : true;
       },
       async changeStatus(id) {
         await db
@@ -177,36 +189,35 @@
             `users/${this.$store.getters["user/userProfile"].uid}/orders/${id}/status`
           )
           .set("Entregado");
-        this.itemsToShow.find((el) => el.ID === id).status = "Entregado";
+
+        this.items.find((el) => el.ID === id).estado = "Entregado";
+        this.items.find((el) => el.ID === id)._rowVariant = "success";
       },
       async setItems() {
         let texts = await this.productAndKitsText;
         this.items = [];
-        let itemsWithoutFormat = this.orders;
-        if (itemsWithoutFormat) {
-          itemsWithoutFormat.forEach(async (element) => {
+        console.log(this.orders);
+        if (this.orders) {
+          this.orders.forEach(async (element) => {
+            console.log(element);
             if (!element.id) return false;
-            element.deliveryTime = `${Number(
-              element.deliveryTime.split(" ")[0]
-            ) + 1} de ${element.deliveryTime.split(" ")[2]} de ${
-              element.deliveryTime.split(" ")[4]
-            }
-              `;
             this.items.push({
               ID: element.id,
               cliente: element.client,
               productos: texts[element.id].products || "-",
               kits: texts[element.id].kits || "-",
               importancia: element.importance,
-              fecha_de_creación: element.createdAt,
-              fecha_de_entrega: element.deliveryTime,
+              fecha_de_creación: this.formatDate(element.createdAt),
+              fecha_de_entrega: this.formatDate(element.deliveryTime),
               precio: `$${element.price}`,
-              status: element.status,
+              estado: element.status,
               opt: undefined,
               _rowVariant:
                 element.status === "Entregado"
                   ? "success"
-                  : this.isItDelayed(element.deliveryTime)
+                  : this.isItDelayed({
+                      deliveryTime: element.deliveryTime,
+                    })
                   ? "danger"
                   : null,
             });
