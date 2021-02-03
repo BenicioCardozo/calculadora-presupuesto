@@ -20,7 +20,7 @@
       <template #head(opt)> {{ "" }}</template>
       <template #cell(ID)="data">
         <b-td class="text-primary">
-          {{ data.value.substring(13) }}
+          {{ createId("PR", data.value) }}
         </b-td>
       </template>
       <template #cell(opt)="data">
@@ -58,24 +58,40 @@
   import { db } from "../../firebase/firebase.js";
   import { mapState } from "vuex";
   import filterItems from "../../components/filterItems";
-
+  import idCreator from "../../mixins/idCreator";
   export default {
     name: "suppliers",
+    mixins: [idCreator],
     components: {
       filterItems,
     },
     data() {
       return {
-        hover: "rgb(0, 123, 255)",
-        items: [],
         itemsToShow: [],
       };
     },
-    created() {
-      this.setItems(this.suppliers);
-    },
     computed: {
       ...mapState(["suppliers"]),
+      items() {
+        let suppliers = this.suppliers;
+        let suppliersFormatted = [];
+        if (suppliers.length == 0) return [];
+        suppliers.forEach((element) => {
+          if (!element.characteristics.id) return false;
+          suppliersFormatted.push({
+            ID: element.characteristics.id,
+            nombre: element.name,
+            localidad: element.loc,
+            dirección: element.characteristics.address,
+            empresa: element.characteristics.company,
+            teléfono: element.characteristics.phoneNumber,
+            notas: element.notes,
+            opt: "",
+          });
+        });
+        this.itemsToShow = suppliersFormatted;
+        return suppliersFormatted;
+      },
       allLocations() {
         let result = [];
         this.items.forEach((el) => {
@@ -84,33 +100,7 @@
         return result;
       },
     },
-    watch: {
-      suppliers: {
-        handler(newVal) {
-          this.setItems(newVal);
-        },
-        deep: true,
-      },
-    },
     methods: {
-      setItems(itemsWithoutFormat) {
-        this.items = [];
-        if (!itemsWithoutFormat) return false;
-        itemsWithoutFormat.forEach((element) => {
-          if (!element.characteristics.id) return false;
-          this.items.push({
-            ID: element.characteristics.id,
-            nombre: element.name,
-            localidad: element.loc,
-            dirección: element.characteristics.address,
-            empresa: element.characteristics.company,
-            número_de_teléfono: element.characteristics.phoneNumber,
-            notas: element.notes,
-            opt: "",
-          });
-          this.itemsToShow = this.items;
-        });
-      },
       async deleteSupplier(data) {
         await db
           .ref(

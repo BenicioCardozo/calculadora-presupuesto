@@ -19,167 +19,8 @@ export default new Vuex.Store({
     orders: undefined,
   },
   mutations: {
-    setSuppliers: (state) => {
-      let suppliers = [];
-      db.ref(`users/${state.user.userProfile.uid}/suppliers`).on(
-        "value",
-        (snapshot) => {
-          suppliers = [];
-          if (snapshot.val()) {
-            for (const key in snapshot.val()) {
-              const supplier = snapshot.val()[key];
-              suppliers.push({
-                name: supplier.name,
-                notes: supplier.notes,
-                loc: supplier.loc,
-                characteristics: {
-                  address: supplier.address,
-                  phoneNumber: supplier.phoneNumber,
-                  id: supplier.id,
-                  company: supplier.company,
-                },
-              });
-              state.suppliers = suppliers;
-            }
-          } else {
-            state.suppliers = undefined;
-          }
-        }
-      );
-    },
-    setOrders: (state) => {
-      let orders = [];
-
-      db.ref(`users/${state.user.userProfile.uid}/orders`).on(
-        "value",
-        (snapshot) => {
-          orders = [];
-          if (snapshot.val()) {
-            for (const key in snapshot.val()) {
-              const order = snapshot.val()[key];
-              orders.push({
-                deliveryTime: order.deliveryTime,
-                client: order.client,
-                createdAt: order.createdAt,
-                id: order.id,
-                kits: order.kits,
-                products: order.products,
-                importance: order.importance,
-                price: order.price,
-                status: order.status,
-              });
-              state.orders = orders;
-            }
-          } else {
-            state.orders = undefined;
-          }
-        }
-      );
-    },
-    setKits: (state) => {
-      let kits = [];
-
-      db.ref(`users/${state.user.userProfile.uid}/kits`).on(
-        "value",
-        (snapshot) => {
-          kits = [];
-          if (snapshot.val()) {
-            for (const key in snapshot.val()) {
-              const kit = snapshot.val()[key];
-              kits.push({
-                name: kit.name,
-                products: kit.products,
-                id: kit.id,
-              });
-              state.kits = kits;
-            }
-          } else {
-            state.kits = undefined;
-          }
-        }
-      );
-    },
-    setClients: (state) => {
-      let clients = [];
-
-      db.ref(`users/${state.user.userProfile.uid}/clients`).on(
-        "value",
-        (snapshot) => {
-          clients = [];
-          if (snapshot.val()) {
-            for (const key in snapshot.val()) {
-              const client = snapshot.val()[key];
-              clients.push({
-                name: client.name,
-                notes: client.notes,
-                loc: client.loc,
-                characteristics: {
-                  address: client.address,
-                  phoneNumber: client.phoneNumber,
-                  id: client.id,
-                  company: client.company,
-                },
-              });
-              state.clients = clients;
-            }
-          } else {
-            state.clients = undefined;
-          }
-        }
-      );
-    },
-    setProducts: (state) => {
-      let products = [];
-
-      db.ref(`users/${state.user.userProfile.uid}/products`).on(
-        "value",
-        (snapshot) => {
-          products = [];
-          if (snapshot.val()) {
-            for (const key in snapshot.val()) {
-              const product = snapshot.val()[key];
-              products.push({
-                name: product.name,
-                type: product.type,
-                characteristics: product.characteristics,
-                id: product.id,
-                sourceMaterials: product.sourceMaterials,
-                profit: product.profit,
-              });
-              state.products = products;
-            }
-          } else {
-            state.products = undefined;
-          }
-        }
-      );
-    },
     changeName(state, newName) {
       state.nameOfActualItem = newName;
-    },
-    setSourceMaterials: (state) => {
-      let sourceMaterials = [];
-
-      db.ref(`users/${state.user.userProfile.uid}/sourceMaterials`).on(
-        "value",
-        (snapshot) => {
-          sourceMaterials = [];
-          if (snapshot.val()) {
-            for (const key in snapshot.val()) {
-              const sourceMaterial = snapshot.val()[key];
-              sourceMaterials.push({
-                name: sourceMaterial.name,
-                characteristics: sourceMaterial.characteristics,
-                price: sourceMaterial.price,
-                id: sourceMaterial.id.substring(1),
-              });
-              state.sourceMaterials = sourceMaterials;
-            }
-          } else {
-            state.sourceMaterials = undefined;
-          }
-        }
-      );
     },
   },
   actions: {
@@ -242,23 +83,165 @@ export default new Vuex.Store({
 
       return result;
     },
-    setProducts: (state) => {
-      state.commit("setProducts");
+    setProducts: ({ state }) => {
+      let products = [];
+
+      db.ref(`users/${state.user.userProfile.uid}/products`).on(
+        "value",
+        (snapshot) => {
+          products = [];
+          if (snapshot.val()) {
+            for (const key in snapshot.val()) {
+              const product = snapshot.val()[key];
+              products.push({
+                name: product.name,
+                type: product.type,
+                characteristics: product.characteristics,
+                id: product.id,
+                sourceMaterials: product.sourceMaterials,
+                profit: product.profit,
+              });
+              state.products = products;
+            }
+          } else {
+            state.products = [];
+          }
+        }
+      );
     },
-    setSourceMaterials: (state) => {
-      state.commit("setSourceMaterials");
+    setSourceMaterials: ({ state }) => {
+      let sourceMaterials = [];
+
+      db.ref(`users/${state.user.userProfile.uid}/sourceMaterials`).on(
+        "value",
+        (snapshot) => {
+          sourceMaterials = [];
+          if (snapshot.val()) {
+            for (const key in snapshot.val()) {
+              const sourceMaterial = snapshot.val()[key];
+              sourceMaterials.push({
+                name: sourceMaterial.name,
+                characteristics: sourceMaterial.characteristics,
+                price: sourceMaterial.price,
+                id: sourceMaterial.id.substring(1),
+              });
+              state.sourceMaterials = sourceMaterials;
+            }
+          } else {
+            state.sourceMaterials = [];
+          }
+        }
+      );
     },
-    setClients: (state) => {
-      state.commit("setClients");
+    setClients: ({ state }) => {
+      let clients = [];
+
+      db.ref(`users/${state.user.userProfile.uid}/clients`).on(
+        "value",
+        (snapshot) => {
+          clients = [];
+          if (snapshot.val()) {
+            for (const key in snapshot.val()) {
+              const client = snapshot.val()[key];
+              clients.push({
+                name: client.name,
+                notes: client.notes,
+                loc: client.loc,
+                characteristics: {
+                  address: client.address,
+                  phoneNumber: client.phoneNumber,
+                  id: client.id,
+                  company: client.company,
+                },
+              });
+              state.clients = clients;
+            }
+          } else {
+            state.clients = [];
+          }
+        }
+      );
     },
-    setKits: (state) => {
-      state.commit("setKits");
+    setKits: ({ state }) => {
+      let kits = [];
+
+      db.ref(`users/${state.user.userProfile.uid}/kits`).on(
+        "value",
+        (snapshot) => {
+          kits = [];
+          if (snapshot.val()) {
+            for (const key in snapshot.val()) {
+              const kit = snapshot.val()[key];
+              kits.push({
+                name: kit.name,
+                products: kit.products,
+                id: kit.id,
+              });
+              state.kits = kits;
+            }
+          } else {
+            state.kits = [];
+          }
+        }
+      );
     },
-    setOrders: (state) => {
-      state.commit("setOrders");
+    setOrders: ({ state }) => {
+      let orders = [];
+
+      db.ref(`users/${state.user.userProfile.uid}/orders`).on(
+        "value",
+        (snapshot) => {
+          orders = [];
+          if (snapshot.val()) {
+            console.log(snapshot.val());
+            for (const key in snapshot.val()) {
+              const order = snapshot.val()[key];
+              orders.push({
+                deliveryTime: order.deliveryTime,
+                client: order.client,
+                createdAt: order.createdAt,
+                id: order.id,
+                kits: order.kits,
+                products: order.products,
+                importance: order.importance,
+                price: order.price,
+                status: order.status,
+              });
+              state.orders = orders;
+            }
+          } else {
+            state.orders = [];
+          }
+        }
+      );
     },
-    setSuppliers: (state) => {
-      state.commit("setSuppliers");
+    setSuppliers: ({ state }) => {
+      let suppliers = [];
+      db.ref(`users/${state.user.userProfile.uid}/suppliers`).on(
+        "value",
+        (snapshot) => {
+          suppliers = [];
+          if (snapshot.val()) {
+            for (const key in snapshot.val()) {
+              const supplier = snapshot.val()[key];
+              suppliers.push({
+                name: supplier.name,
+                notes: supplier.notes,
+                loc: supplier.loc,
+                characteristics: {
+                  address: supplier.address,
+                  phoneNumber: supplier.phoneNumber,
+                  id: supplier.id,
+                  company: supplier.company,
+                },
+              });
+              state.suppliers = suppliers;
+            }
+          } else {
+            state.suppliers = [];
+          }
+        }
+      );
     },
   },
 });
