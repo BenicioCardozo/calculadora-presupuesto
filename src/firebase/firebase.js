@@ -23,7 +23,7 @@ firebase.auth().onAuthStateChanged((user) => {
   console.log(user);
   if (user) {
     store.commit("user/USER_DETAILS", user);
-    router.push("/materias-primas");
+    router.push("/proveedores");
   } else {
     store.commit("user/LOGOUT");
   }

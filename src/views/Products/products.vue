@@ -106,7 +106,6 @@
   import { db } from "../../firebase/firebase.js";
   import { mapState } from "vuex";
   import filterItems from "../../components/filterItems";
-
   export default {
     name: "products",
     components: {
@@ -132,7 +131,6 @@
         showComplete: [],
       };
     },
-
     computed: {
       items() {
         let texts = this.sourceMaterialsText();
@@ -143,7 +141,6 @@
             let price = await this.prices();
             price = Number(price[element.name]);
             console.log(texts);
-
             if (!element) return false;
             items.push({
               ID: element.id.substr(13),
@@ -172,7 +169,6 @@
       },
       ...mapState(["products"]),
     },
-
     methods: {
       sourceMaterialsText() {
         let sourceMaterials = {};
@@ -185,7 +181,6 @@
               "es-AR"
             )}`;
           });
-
           sourceMaterials[nameOfActualItem.name] = p;
           this.showComplete.push({
             name: nameOfActualItem.name,

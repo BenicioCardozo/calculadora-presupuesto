@@ -273,7 +273,7 @@
           this.$router.push("productos");
         }
       },
-      pushSourceMaterial(newMeasurementUnit) {
+      pushSourceMaterial() {
         this.$set(this.sourceMaterials, this.sourceMaterial, {
           name: this.sourceMaterial,
           howMuch: Number(this.howMuch.replace(",", ".")),
@@ -327,9 +327,6 @@
   }
   select {
     width: 80vw;
-  }
-  * {
-    text-align: center;
   }
   form > div > span {
     display: flex;

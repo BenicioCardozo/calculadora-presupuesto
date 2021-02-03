@@ -50,6 +50,7 @@
         :font-size="15"
         v-model="seeKits"
         class="mb-3"
+        @change="cleanInputs()"
       />
     </span>
     <b-input-group
@@ -76,12 +77,7 @@
       </b-form-select></b-input-group
     >
     <b-input-group :prepend="`Cantidad del ${subtitle.slice(0, -1)}`">
-      <b-input
-        :placeholder="`Cantidad del ${subtitle.slice(0, -1)}`"
-        type="number"
-        v-model="quantity"
-      >
-      </b-input
+      <b-input type="number" v-model="quantity"> </b-input
     ></b-input-group>
     <b-table
       class="mb-2 mt-2"
@@ -98,8 +94,9 @@
         <div class="d-flex justify-content-center ">
           <b-input
             style="max-width:70%;"
+            type="number"
             @input="updQuantity($event, data.item.name)"
-            :value="data.value.toLocaleString('es-AR')"
+            :value="data.value"
           ></b-input>
         </div>
       </template>
@@ -221,6 +218,9 @@
       },
     },
     methods: {
+      cleanInputs() {
+        this.product = this.kit = this.quantity = undefined;
+      },
       recomputePriceProperty() {
         return this.price;
       },
@@ -272,12 +272,7 @@
         } else {
           (isiTInKits !== undefined ? this.kits : this.products)[
             name
-          ].quantity = Number(
-            newQuantity
-              .replace(/,/g, "_")
-              .replace(/\./g, "")
-              .replace(/_/g, ".")
-          );
+          ].quantity = Number(newQuantity.replace(/,/g, "."));
         }
       },
       sendData() {
@@ -299,7 +294,6 @@
           status: "Pendiente",
           price: this.recomputePriceProperty(),
         };
-        console.log(orderData.deliveryTime);
         let updates = {};
         updates[
           `users/${this.$store.getters["user/userProfile"].uid}/orders/${newKey}`
@@ -316,7 +310,7 @@
         } else {
           this.$set(this.products, this.kit, {
             name: this.kit,
-            quantity: this.quantity,
+            quantity: Number(this.quantity),
           });
         }
         (this.kit = "Kit"), (this.quantity = "");

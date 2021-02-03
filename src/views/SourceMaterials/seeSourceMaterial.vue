@@ -83,6 +83,7 @@
         ],
         qualities: ["Alta", "Media", "Baja"],
         colors: ["Beige", "Azul", "Blanco"],
+        id: undefined,
       };
     },
     async created() {
@@ -100,7 +101,7 @@
       this.quality = res.characteristics.quality;
       this.price.measurementUnit = res.price.measurementUnit;
       this.price.amount = res.price.amount;
-
+      this.id = res.id;
       this.$store.state.suppliers.forEach((element) => {
         this.supplierOpt.push(element.name);
       });
@@ -121,11 +122,6 @@
     },
     methods: {
       sendData() {
-        let newKey = db
-          .ref()
-          .child("sourceMaterials")
-          .push().key;
-
         let sourceMaterialData = {
           name: this.name,
           characteristics: {
@@ -134,7 +130,7 @@
             type: this.type,
             supplier: this.supplier,
           },
-          id: newKey,
+          id: this.id,
           price: this.price,
         };
 

@@ -16,11 +16,11 @@
 
   export default {
     beforeCreate() {
+      this.$store.dispatch("setSuppliers");
       this.$store.dispatch("setProducts");
       this.$store.dispatch("setSourceMaterials");
       this.$store.dispatch("setKits");
       this.$store.dispatch("setOrders");
-      this.$store.dispatch("setSuppliers");
       this.$store.dispatch("setClients");
     },
     components: {
@@ -42,14 +42,6 @@
 </script>
 
 <style>
-  h2,
-  h1,
-  h3,
-  h4,
-  h5,
-  h6 {
-    text-align: center;
-  }
   input::-webkit-outer-spin-button,
   input::-webkit-inner-spin-button {
     -webkit-appearance: none;

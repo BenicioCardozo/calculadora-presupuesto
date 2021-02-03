@@ -1,6 +1,6 @@
 <template>
   <main>
-    <h2>Iniciar Sesión</h2>
+    <h1>Iniciar Sesión</h1>
 
     <b-button variant="outline-primary" @click="login">
       <svg
@@ -48,7 +48,6 @@
     min-height: 50vh;
     align-items: center;
     z-index: -1000;
-    box-shadow: 1em 1em 1em 1em rgba(0, 0, 0, 0.096);
   }
   button {
     min-width: 80%;
@@ -56,7 +55,7 @@
     margin: 10vh;
   }
 
-  main h2 {
+  main h1 {
     margin: 5vh 0;
     font-size: 2rem;
     font-family: "Montserrat", sans-serif;

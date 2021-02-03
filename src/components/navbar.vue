@@ -50,7 +50,7 @@
   }
 
   li :not(.form-inline) :hover {
-    background-color: #54268f;
+    background-color: #6d499c;
     border-radius: 10px;
     text-decoration: none !important ;
   }

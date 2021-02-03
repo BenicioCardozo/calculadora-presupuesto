@@ -163,10 +163,9 @@
     justify-content: space-evenly;
     align-items: center;
   }
-  #container > span > h5 {
-    margin: 1vh 0;
-  }
-  h6 {
+  h6,
+  h5 {
     margin: 0 0 2vh;
+    text-align: center;
   }
 </style>

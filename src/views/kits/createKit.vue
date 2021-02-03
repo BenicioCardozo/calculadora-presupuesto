@@ -65,10 +65,6 @@
       </b-table>
       <b-card v-if="kitInfo" class="mb-3">
         <h5>
-          Ganancia:
-          {{ "$" + Number(kitInfo.profit.toFixed(2)).toLocaleString("es-AR") }}
-        </h5>
-        <h5>
           Costo Final:
           {{ "$" + Number(kitInfo.cost.toFixed(2)).toLocaleString("es-AR") }}
         </h5>
@@ -77,6 +73,10 @@
           {{
             "$" + Number(kitInfo.final_price.toFixed(2)).toLocaleString("es-AR")
           }}
+        </h5>
+        <h5>
+          Ganancia:
+          {{ "$" + Number(kitInfo.profit.toFixed(2)).toLocaleString("es-AR") }}
         </h5>
       </b-card>
     </div>
@@ -235,9 +235,6 @@
 </script>
 
 <style scoped>
-  * {
-    text-align: center;
-  }
   form > span {
     display: flex;
     justify-content: space-around;
