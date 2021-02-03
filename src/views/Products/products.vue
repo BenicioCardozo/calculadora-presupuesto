@@ -136,6 +136,7 @@
     computed: {
       items() {
         let texts = this.sourceMaterialsText();
+        console.log(texts);
         if (this.products) {
           let items = [];
           this.products.forEach(async (element) => {
@@ -186,13 +187,11 @@
           });
 
           sourceMaterials[nameOfActualItem.name] = p;
-
           this.showComplete.push({
             name: nameOfActualItem.name,
             show_all: false,
           });
         }
-
         return sourceMaterials;
       },
       async prices() {

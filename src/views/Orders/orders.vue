@@ -196,10 +196,8 @@
       async setItems() {
         let texts = await this.productAndKitsText;
         this.items = [];
-        console.log(this.orders);
         if (this.orders) {
           this.orders.forEach(async (element) => {
-            console.log(element);
             if (!element.id) return false;
             this.items.push({
               ID: element.id,

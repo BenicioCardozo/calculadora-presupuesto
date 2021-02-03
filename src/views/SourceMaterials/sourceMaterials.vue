@@ -226,6 +226,7 @@
     position: absolute;
     left: 50%;
     top: 45%;
+    text-align: center;
     transform: translate(-50%, -50%);
     display: flex;
     justify-content: space-evenly;

@@ -6,7 +6,6 @@
         :methodOpt="{
           price: ['<', '>'],
         }"
-        @setItems="setItems"
         :filtersOpt="[{ type: 'Precio', name: 'Costo' }]"
         :items.sync="items"
         :itemsToShow.sync="itemsToShow"
@@ -64,7 +63,13 @@
         </template>
         <template #head(opt)>{{ `` }}</template>
         <template #cell(opt)="data"
-          ><b-dropdown right style="max-width:100%;" variant="white" no-caret>
+          ><b-dropdown
+            no-flip
+            right
+            style="max-width:100%;"
+            variant="white"
+            no-caret
+          >
             <template #button-content>
               <b-icon
                 scale="1.1"
@@ -109,12 +114,40 @@
       return {
         items: [],
         itemsToShow: [],
-        costs: {},
         showComplete: [],
       };
     },
 
     computed: {
+      async costs() {
+        let kitsPrices = {};
+        if (!this.kits) return;
+        for (const iterator of this.kits) {
+          let result = [];
+          let costs = [];
+          for (const key in iterator.products) {
+            try {
+              let product = iterator.products[key];
+              let priceOfProduct =
+                (await this.$store.dispatch("setProductPrice", product.name)) *
+                product.quantity;
+              costs.push(priceOfProduct);
+              result.push({
+                name: product.name,
+                price: priceOfProduct,
+              });
+            } catch (error) {
+              await db
+                .ref(
+                  `users/${this.$store.getters["user/userProfile"].uid}/kits/${iterator.name}/products/${iterator.products[key].name}`
+                )
+                .set(null);
+            }
+          }
+          kitsPrices[iterator.name] = result;
+        }
+        return kitsPrices;
+      },
       ...mapState(["kits"]),
       productsText() {
         if (this.kits) {
@@ -148,42 +181,8 @@
         }
       },
     },
-    watch: {
-      kits: {
-        async handler(newVal) {
-          let kitsPrices = {};
-          if (!newVal) return;
-          for (const iterator of newVal) {
-            let result = [];
-            let costs = [];
-            for (const key in iterator.products) {
-              try {
-                let product = iterator.products[key];
-                let priceOfProduct =
-                  (await this.$store.dispatch(
-                    "setProductPrice",
-                    product.name
-                  )) * product.quantity;
-                costs.push(priceOfProduct);
-                result.push({
-                  name: product.name,
-                  price: priceOfProduct,
-                });
-              } catch (error) {
-                await db
-                  .ref(
-                    `users/${this.$store.getters["user/userProfile"].uid}/kits/${iterator.name}/products/${iterator.products[key].name}`
-                  )
-                  .set(null);
-              }
-            }
-            kitsPrices[iterator.name] = result;
-          }
-          this.costs = kitsPrices;
-          this.setItems(newVal);
-        },
-        deep: true,
-      },
+    created() {
+      this.setItems(this.kits);
     },
 
     methods: {
@@ -216,7 +215,7 @@
         let kits_prices = [];
         let formula = (price, profit) =>
           ((1 + profit / 100) * price).toFixed(2).toLocaleString("es-AR");
-        let prices = this.costs[name].map(async (el) => {
+        let prices = (await this.costs)[name].map(async (el) => {
           let profit = await db
             .ref(
               `users/${this.$store.getters["user/userProfile"].uid}/products/${el.name}/profit`
@@ -235,7 +234,9 @@
         if (!itemsWithoutFormat) return false;
         itemsWithoutFormat.forEach(async (element) => {
           if (!element) return false;
-          let price = this.costs[element.name].reduce((a, b) => a + b.price, 0);
+          console.log(this.costs);
+          let price = await this.costs;
+          price = price[element.name].reduce((a, b) => a + b.price, 0);
           let products = this.productsText;
           let final_price = await this.getFinalPrice(element.name);
           this.items.push({
@@ -256,6 +257,10 @@
         db.ref(
           `users/${this.$store.getters["user/userProfile"].uid}/kits/${item.nombre}`
         ).remove();
+        this.items.splice(
+          this.items.findIndex((el) => el.nombre === item.nombre),
+          1
+        );
       },
       editKit({ item }) {
         this.$store.commit("changeName", item.nombre);
