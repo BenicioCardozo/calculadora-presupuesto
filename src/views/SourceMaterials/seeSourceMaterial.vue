@@ -22,18 +22,15 @@
         placeholder="Costo"
         type="number"
       ></b-form-input>
-      <b-dropdown
-        style="margin: 0 20px"
-        text="Unidad de Medida"
-        variant="primary"
+      <b-form-select
+        v-model="price.measurementUnit"
+        class="ml-3"
+        :options="measurementUnits"
       >
-        <b-dropdown-item @click="price.measurementUnit = 'Metro'"
-          >Metro</b-dropdown-item
+        <b-form-select-option value="Unidad de Medida" hidden
+          >Unidad de Medida</b-form-select-option
         >
-        <b-dropdown-item @click="price.measurementUnit = 'Unidad'"
-          >Unidad</b-dropdown-item
-        >
-      </b-dropdown>
+      </b-form-select>
     </b-input-group>
     <span>
       <b-button
@@ -64,9 +61,10 @@
         type: null,
         supplier: null,
         supplierOpt: [],
+        measurementUnits: ["Metro", "Unidad"],
         price: {
           amount: undefined,
-          measurementUnit: undefined,
+          measurementUnit: "Unidad de Medida",
         },
         sourceMaterialsNames: [
           "Linón",
@@ -110,7 +108,7 @@
       isFormValid() {
         if (
           this.name &&
-          this.price.measurementUnit != undefined &&
+          this.price.measurementUnit !== "Unidad de Medida" &&
           this.price.amount !== (undefined || "") &&
           this.supplier != ""
         ) {

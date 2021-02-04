@@ -21,19 +21,17 @@
         v-model.number="price.amount"
         placeholder="Costo"
         type="number"
+        class="w-50"
       ></b-form-input>
-      <b-dropdown
-        style="margin: 0 20px"
-        text="Unidad de Medida"
-        variant="primary"
+      <b-form-select
+        v-model="price.measurementUnit"
+        class="ml-3"
+        :options="measurementUnits"
       >
-        <b-dropdown-item @click="price.measurementUnit = 'Metro'"
-          >Metro</b-dropdown-item
+        <b-form-select-option value="Unidad de Medida" hidden
+          >Unidad de Medida</b-form-select-option
         >
-        <b-dropdown-item @click="price.measurementUnit = 'Unidad'"
-          >Unidad</b-dropdown-item
-        >
-      </b-dropdown>
+      </b-form-select>
     </b-input-group>
 
     <span>
@@ -66,7 +64,7 @@
         supplier: null,
         price: {
           amount: undefined,
-          measurementUnit: undefined,
+          measurementUnit: "Unidad de Medida",
         },
         supplierOpt: [],
         sourceMaterialsNames: [
@@ -82,6 +80,7 @@
           "Gabardina",
           "Mano de Obra",
         ],
+        measurementUnits: ["Metro", "Unidad"],
         qualities: ["Alta", "Media", "Baja"],
         colors: ["Beige", "Azul", "Blanco"],
       };
@@ -95,7 +94,7 @@
       isFormValid() {
         if (
           this.name &&
-          this.price.measurementUnit != undefined &&
+          this.price.measurementUnit !== "Unidad de Medida" &&
           this.price.amount !== (undefined || "")
         ) {
           return true;
@@ -111,7 +110,6 @@
           .ref()
           .child("sourceMaterials")
           .push().key;
-
         let sourceMaterialData = {
           name: this.name,
           characteristics: {
@@ -123,14 +121,11 @@
           id: newKey,
           price: this.price,
         };
-
         let updates = {};
         updates[
           `users/${this.$store.getters["user/userProfile"].uid}/sourceMaterials/${this.name}`
         ] = sourceMaterialData;
-
         db.ref().update(updates);
-
         this.$router.push("materias-primas");
       },
     },
