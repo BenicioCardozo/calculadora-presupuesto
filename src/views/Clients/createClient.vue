@@ -22,15 +22,12 @@
     </b-input-group>
 
     <b-input-group>
-      <b-input
-        placeholder="Localidad"
-        @input="$v.loc.$touch"
+      <locationsSelect
         :style="[
           $v.loc.$error ? { border: '2px solid rgb(255, 36, 36)' } : null,
         ]"
-        type="text"
         v-model="loc"
-      ></b-input>
+      />
       <b-input
         @input="$v.streetName.$touch"
         :style="[
@@ -106,8 +103,9 @@
   import { db } from "../../firebase/firebase.js";
   import { required } from "vuelidate/lib/validators";
   import cancelationButton from "../../components/cancelationButton.vue";
+  import locationsSelect from "../../components/locationsSelect.vue";
   export default {
-    components: { cancelationButton },
+    components: { cancelationButton, locationsSelect },
     name: "create-client",
     data() {
       return {
@@ -119,7 +117,7 @@
         prefix: 11,
         prefixes: [11, 223],
         company: undefined,
-        loc: undefined,
+        loc: "Ciudad",
         notes: undefined,
       };
     },
@@ -129,6 +127,7 @@
       },
       loc: {
         required,
+        validateSelect: (value) => !value.includes("Ciudad"),
       },
       streetNumber: {
         required,
@@ -207,6 +206,7 @@
   div > input {
     margin: 1px 20px 14px 1px;
   }
+
   .input-group,
   textarea {
     max-width: 80vw;
@@ -214,13 +214,15 @@
     max-height: 30vh;
   }
   select {
-    max-width: 15vw;
-    margin: 0 1vw 0 1vw;
-    padding: 1vh;
+    margin: 0 1vw 0 0vw;
   }
+
   form > span {
     display: flex;
     justify-content: space-around;
     width: 100%;
+  }
+  .input-group-prepend {
+    margin-right: 1vw;
   }
 </style>

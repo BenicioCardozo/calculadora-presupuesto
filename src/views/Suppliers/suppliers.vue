@@ -16,7 +16,7 @@
       :itemsToShow.sync="itemsToShow"
       action="/crear-proveedor"
     ></filterItems>
-    <b-table hover responsive :items="itemsToShow" v-if="suppliers">
+    <b-table hover responsive :items="itemsToShow" v-if="items.length > 0">
       <template #head(opt)> {{ "" }}</template>
       <template #cell(ID)="data">
         <b-td class="text-primary">

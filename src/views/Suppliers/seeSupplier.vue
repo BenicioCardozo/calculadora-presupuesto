@@ -22,15 +22,18 @@
     </b-input-group>
 
     <b-input-group>
-      <b-input
-        placeholder="Localidad"
-        @input="$v.loc.$touch"
+      <b-form-select
         :style="[
           $v.loc.$error ? { border: '2px solid rgb(255, 36, 36)' } : null,
         ]"
-        type="text"
+        @change="$v.loc.$touch"
         v-model="loc"
-      ></b-input>
+        :options="cities"
+      >
+        <b-form-select-option selected disabled value="Ciudad"
+          >Ciudad</b-form-select-option
+        >
+      </b-form-select>
       <b-input
         @input="$v.streetName.$touch"
         :style="[
@@ -109,22 +112,26 @@
 <script>
   import { db } from "../../firebase/firebase.js";
   import { required } from "vuelidate/lib/validators";
+  import cancelationButton from "../../components/cancelationButton.vue";
+  import cities from "../../assets/cities.json";
 
   export default {
+    components: { cancelationButton },
     name: "create-client",
     data() {
       return {
         streetName: undefined,
         streetNumber: undefined,
+        cities: cities,
         name: undefined,
         surname: undefined,
         phoneNumber: "",
-        prefix: undefined,
+        prefix: 11,
         prefixes: [11, 223],
         company: undefined,
-        loc: undefined,
-        notes: undefined,
+        loc: "Ciudad",
         id: undefined,
+        notes: undefined,
       };
     },
     validations: {
@@ -133,6 +140,7 @@
       },
       loc: {
         required,
+        validateSelect: (value) => !value.includes("Ciudad"),
       },
       streetNumber: {
         required,
