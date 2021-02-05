@@ -66,7 +66,6 @@
           amount: undefined,
           measurementUnit: "Unidad de Medida",
         },
-        supplierOpt: [],
         sourceMaterialsNames: [
           "Linón",
           "Tela Puntillé",
@@ -85,12 +84,14 @@
         colors: ["Beige", "Azul", "Blanco"],
       };
     },
-    created() {
-      this.$store.state.suppliers.forEach((element) => {
-        this.supplierOpt.push(element.name);
-      });
-    },
     computed: {
+      supplierOpt() {
+        let result = [];
+        this.$store.state.suppliers.forEach((element) => {
+          result.push(element.name);
+        });
+        return result;
+      },
       isFormValid() {
         if (
           this.name &&
