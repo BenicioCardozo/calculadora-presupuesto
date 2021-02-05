@@ -68,17 +68,26 @@
             </b-dropdown-item-button>
             <div
               v-if="
-                itemsToShow.find((el) => el.ID === data.item.ID).status !==
+                itemsToShow.find((el) => el.ID === data.item.ID).estado !==
                   'Entregado'
               "
             >
               <b-dropdown-divider></b-dropdown-divider>
               <b-dropdown-item-button
                 variant="success"
-                @click.stop="changeStatus(data.item.ID)"
+                @click="changeStatus(data.item.ID, 'Delivered')"
               >
                 <b-icon icon="journal-check"></b-icon>
-                Cambiar status
+                Entregar
+              </b-dropdown-item-button>
+            </div>
+            <div v-else>
+              <b-dropdown-divider></b-dropdown-divider>
+              <b-dropdown-item-button
+                @click="changeStatus(data.item.ID, 'Pending')"
+              >
+                <b-icon icon="exclamation-circle-fill"></b-icon>
+                Pendiente
               </b-dropdown-item-button>
             </div>
           </b-dropdown>
@@ -183,15 +192,16 @@
         );
         return comparation !== 1 ? false : true;
       },
-      async changeStatus(id) {
-        await db
-          .ref(
-            `users/${this.$store.getters["user/userProfile"].uid}/orders/${id}/status`
-          )
-          .set("Entregado");
+      changeStatus(id, newStatus) {
+        let status = newStatus === "Pending" ? "Pendiente" : "Entregado";
 
-        this.items.find((el) => el.ID === id).estado = "Entregado";
-        this.items.find((el) => el.ID === id)._rowVariant = "success";
+        this.items.find((el) => el.ID === id).estado = status;
+        this.items.find((el) => el.ID === id)._rowVariant =
+          status === "Pendiente" ? null : "success";
+
+        db.ref(
+          `users/${this.$store.getters["user/userProfile"].uid}/orders/${id}/status`
+        ).set(status);
       },
       async setItems() {
         let texts = await this.productAndKitsText;
