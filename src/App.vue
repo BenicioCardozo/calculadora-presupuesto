@@ -52,4 +52,12 @@
     vertical-align: middle !important;
     border-top: none !important;
   }
+  .btn-success.disabled {
+    background-color: rgba(3, 3, 3, 0.473) !important;
+    border: 1px solid rgb(124, 121, 121) !important;
+  }
+  /* .btn-info.disabled {
+    background-color: rgba(105, 102, 102, 0.521) !important;
+    border: 2px solid rgb(116, 116, 116) !important;
+  } */
 </style>
