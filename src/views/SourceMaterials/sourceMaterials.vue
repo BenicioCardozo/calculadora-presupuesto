@@ -3,25 +3,29 @@
     <h1>Materias Primas</h1>
     <div>
       <filterItems
-        :methodOpt="{
-          price: ['<', '>'],
-          types: [
-            'Linón',
-            'Tela Puntillé',
-            'Lienzo',
-            'Cinta PP',
-            'Cierre',
-            'Etiquetas',
-            'Bagún',
-            'Cristal',
-            'Deslizador',
-            'Gabardina',
-            'Mano de Obra',
-          ],
-        }"
         :filtersOpt="[
-          { type: 'Precio', name: 'Costo' },
-          { name: 'Tipo', type: 'Tipo' },
+          {
+            type: 'Precio',
+            name: 'Costo',
+          },
+          {
+            name: 'Tipo',
+            type: 'Tipo',
+            propToCompare: 'tipo',
+            types: [
+              'Linón',
+              'Tela Puntillé',
+              'Lienzo',
+              'Cinta PP',
+              'Cierre',
+              'Etiquetas',
+              'Bagún',
+              'Cristal',
+              'Deslizador',
+              'Gabardina',
+              'Mano de Obra',
+            ],
+          },
         ]"
         :items.sync="items"
         :itemsToShow.sync="itemsToShow"
@@ -43,54 +47,13 @@
           >
         </span>
       </b-alert>
-      <b-table
-        hover
-        responsive="lg"
-        :items="itemsToShow"
-        v-if="sourceMaterials"
+      <table-component
+        lettersForId="MP"
+        :itemsToShow="tableItems"
+        @deleteItem="deleteSourceMaterial"
+        @editItem="editSourceMaterial"
       >
-        <template #cell(precio)="data" style="white-space: nowrap;">
-          {{
-            `$${Number(data.value.replace(/[^0-9&.]/g, "")).toLocaleString(
-              "es-AR"
-            )}/${data.value.split("/")[1]}`
-          }}
-        </template>
-        <template #head(precio)>Costo</template>
-        <template #cell(ID)="data">
-          <b-td class="text-primary">
-            {{ data.value }}
-          </b-td>
-        </template>
-        <template #head(opt)> {{ "" }}</template>
-        <template #cell(opt)="data"
-          ><b-dropdown right style="max-width:100%;" variant="white" no-caret>
-            <template #button-content>
-              <b-icon
-                scale="1.1"
-                icon="three-dots-vertical"
-                aria-hidden="true"
-              ></b-icon>
-            </template>
-            <b-dropdown-item-button
-              @click.stop="editSourceMaterial(data)"
-              tabindex="-1"
-              variant="info"
-            >
-              <b-icon icon="pencil" aria-hidden="true"></b-icon>
-              Editar
-            </b-dropdown-item-button>
-            <b-dropdown-divider></b-dropdown-divider>
-            <b-dropdown-item-button
-              variant="danger"
-              @click.stop="deleteSourceMaterial(data)"
-            >
-              <b-icon icon="trash-fill" aria-hidden="true"></b-icon>
-              Eliminar
-            </b-dropdown-item-button>
-          </b-dropdown></template
-        >
-      </b-table>
+      </table-component>
     </div>
   </div>
 </template>
@@ -99,10 +62,14 @@
   import { db } from "../../firebase/firebase.js";
   import { mapState } from "vuex";
   import filterItems from "../../components/filterItems";
+  import idCreator from "../../mixins/idCreator";
+  import tableComponent from "../../components/table";
   export default {
     name: "source-materials",
+    mixins: [idCreator],
     components: {
       filterItems,
+      tableComponent,
     },
     data() {
       return {
@@ -126,11 +93,24 @@
 
     computed: {
       ...mapState(["sourceMaterials"]),
+      tableItems() {
+        if (!this.itemsToShow) return;
+        let res = this.itemsToShow.map((_arrayElement) =>
+          Object.assign({}, _arrayElement)
+        );
+        for (const item of res) {
+          item.precio = `$${Number(
+            item.precio.replace(/[^0-9&.]/g, "")
+          ).toLocaleString("es-AR")}/${item.precio.split("/")[1]}`;
+        }
+
+        return res;
+      },
       items() {
         let items = [];
         this.sourceMaterials.forEach((element) => {
           items.push({
-            ID: element.id.substr(13, element.id.length),
+            ID: element.id,
             nombre: element.name,
             color: element.characteristics.color,
             calidad: element.characteristics.quality,
@@ -204,7 +184,8 @@
         this.showAlert = false;
       },
       async deleteSourceMaterial(sourceMaterial) {
-        this.sourceMaterialToEliminate = sourceMaterial.item.nombre;
+        this.sourceMaterialToEliminate = sourceMaterial.item.ID;
+        console.log(this.sourceMaterialToEliminate);
         if (this.sourceMaterialsWithProducts) {
           let indexOfSourceMaterial = this.sourceMaterialsWithProducts
             .map((el) => el.name)
@@ -214,7 +195,8 @@
         this.showAlert = true;
       },
       editSourceMaterial(sourceMaterial) {
-        this.$store.commit("changeName", sourceMaterial.item.nombre);
+        console.log(sourceMaterial.item.ID);
+        this.$store.commit("changeName", sourceMaterial.item.ID);
         this.$router.push("ver-materia-prima");
       },
     },

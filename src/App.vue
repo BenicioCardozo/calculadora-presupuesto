@@ -13,15 +13,20 @@
 <script>
   import { mapActions, mapGetters } from "vuex";
   import navbar from "./components/navbar";
-
+  import firebase from "@firebase/app";
   export default {
-    beforeCreate() {
-      this.$store.dispatch("setSuppliers");
-      this.$store.dispatch("setProducts");
-      this.$store.dispatch("setSourceMaterials");
-      this.$store.dispatch("setKits");
-      this.$store.dispatch("setOrders");
-      this.$store.dispatch("setClients");
+    created() {
+      firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+          console.log("Change");
+          this.$store.dispatch("setSuppliers");
+          this.$store.dispatch("setProducts");
+          this.$store.dispatch("setSourceMaterials");
+          this.$store.dispatch("setKits");
+          this.$store.dispatch("setOrders");
+          this.$store.dispatch("setClients");
+        }
+      });
     },
     components: {
       navbar,
@@ -56,8 +61,8 @@
     background-color: rgba(3, 3, 3, 0.473) !important;
     border: 1px solid rgb(124, 121, 121) !important;
   }
-  /* .btn-info.disabled {
-    background-color: rgba(105, 102, 102, 0.521) !important;
-    border: 2px solid rgb(116, 116, 116) !important;
-  } */
+  .btn-outline-info.disabled {
+    color: rgb(116, 116, 116) !important;
+    border: 1px solid rgb(116, 116, 116) !important;
+  }
 </style>

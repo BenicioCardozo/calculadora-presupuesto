@@ -22,8 +22,9 @@ firebase.initializeApp(firebaseConfig);
 firebase.auth().onAuthStateChanged((user) => {
   console.log(user);
   if (user) {
-    store.commit("user/USER_DETAILS", user);
+    console.log("Change");
     router.push("/proveedores");
+    store.commit("user/USER_DETAILS", user);
   } else {
     store.commit("user/LOGOUT");
   }

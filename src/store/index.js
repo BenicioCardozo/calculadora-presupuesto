@@ -41,9 +41,10 @@ export default new Vuex.Store({
 
       let sourceMaterialsPrices = sourceMaterials.map(async (el) => {
         let nameOfEl = Object.keys(el)[0];
+        let id = context.state.sourceMaterials.find((el) => el.name).id;
         let amount = await db
           .ref(
-            `users/${context.state.user.userProfile.uid}/sourceMaterials/${nameOfEl}/price/amount`
+            `users/${context.state.user.userProfile.uid}/sourceMaterials/${id}/price/amount`
           )
           .once("value")
           .then((res) => res.val());
@@ -123,7 +124,7 @@ export default new Vuex.Store({
                 name: sourceMaterial.name,
                 characteristics: sourceMaterial.characteristics,
                 price: sourceMaterial.price,
-                id: sourceMaterial.id.substring(1),
+                id: sourceMaterial.id,
               });
               state.sourceMaterials = sourceMaterials;
             }

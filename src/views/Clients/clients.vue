@@ -2,55 +2,25 @@
   <div>
     <h1>Clientes</h1>
     <filterItems
-      :methodOpt="{
-        types: this.allLocations,
-      }"
       :filtersOpt="[
         {
-          type: 'Tipo',
           name: 'Localidad',
+          type: 'Tipo',
           propToCompare: 'localidad',
+          types: this.allLocations,
         },
       ]"
       :items.sync="items"
       :itemsToShow.sync="itemsToShow"
       action="/crear-cliente"
     ></filterItems>
-    <b-table hover responsive :items="itemsToShow" v-if="clients">
-      <template #head(opt)> {{ "" }}</template>
-      <template #cell(ID)="data">
-        <b-td class="text-primary">
-          {{ data.value.substring(13) }}
-        </b-td>
-      </template>
-      <template #cell(opt)="data">
-        <b-dropdown right variant="white" no-caret>
-          <template #button-content>
-            <b-icon
-              scale="1.1"
-              icon="three-dots-vertical"
-              aria-hidden="true"
-            ></b-icon>
-          </template>
-          <b-dropdown-item-button
-            @click.stop="editClient(data)"
-            tabindex="-1"
-            variant="info"
-          >
-            <b-icon icon="pencil" aria-hidden="true"></b-icon>
-            Editar
-          </b-dropdown-item-button>
-          <b-dropdown-divider></b-dropdown-divider>
-          <b-dropdown-item-button
-            variant="danger"
-            @click.stop="deleteClient(data)"
-          >
-            <b-icon icon="trash-fill" aria-hidden="true"></b-icon>
-            Eliminar
-          </b-dropdown-item-button>
-        </b-dropdown>
-      </template>
-    </b-table>
+    <table-component
+      lettersForId="CL"
+      :itemsToShow="itemsToShow"
+      @deleteItem="deleteClient"
+      @editItem="editClient"
+    >
+    </table-component>
   </div>
 </template>
 
@@ -58,21 +28,19 @@
   import { db } from "../../firebase/firebase.js";
   import { mapState } from "vuex";
   import filterItems from "../../components/filterItems";
-
+  import idCreator from "../../mixins/idCreator";
+  import tableComponent from "../../components/table";
   export default {
     name: "clients",
+    mixins: [idCreator],
     components: {
       filterItems,
+      tableComponent,
     },
     data() {
       return {
-        hover: "rgb(0, 123, 255)",
-        items: [],
         itemsToShow: [],
       };
-    },
-    created() {
-      this.setItems(this.clients);
     },
     computed: {
       ...mapState(["clients"]),
@@ -83,26 +51,11 @@
         });
         return result;
       },
-    },
-    watch: {
-      clients: {
-        handler(newVal) {
-          this.setItems(newVal);
-        },
-        deep: true,
-      },
-    },
-    methods: {
-      setItems(itemsWithoutFormat) {
-        this.items = [];
-        if (!itemsWithoutFormat) return false;
-        if (itemsWithoutFormat.length === 0) {
-          this.items = [];
-          this.itemsToShow = [];
-        }
-        itemsWithoutFormat.forEach((element) => {
-          if (!element.characteristics.id) return false;
-          this.items.push({
+      items() {
+        let res = [];
+        console.dir(this.clients);
+        this.clients.forEach((element) => {
+          res.push({
             ID: element.characteristics.id,
             nombre: element.name,
             localidad: element.loc,
@@ -112,19 +65,24 @@
             notas: element.notes,
             opt: "",
           });
-          this.itemsToShow = this.items;
+          console.log(res);
         });
+        this.itemsToShow = res;
+        console.log(res);
+
+        return res;
       },
-      async deleteClient(name) {
+    },
+    methods: {
+      async deleteClient(data) {
         await db
           .ref(
-            `users/${this.$store.getters["user/userProfile"].uid}/clients/${name.item.ID}`
+            `users/${this.$store.getters["user/userProfile"].uid}/clients/${data.item.ID}`
           )
           .remove();
-        this.setItems(this.clients);
       },
-      editClient(name) {
-        this.$store.commit("changeName", name.item.ID);
+      editClient(data) {
+        this.$store.commit("changeName", data.item.ID);
         this.$router.push("ver-cliente");
       },
     },

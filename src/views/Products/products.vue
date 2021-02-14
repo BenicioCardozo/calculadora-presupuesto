@@ -3,101 +3,75 @@
     <h1>Productos</h1>
     <div>
       <filterItems
-        :methodOpt="{
-          price: ['<', '>'],
-          types: ['Sss', 'Aaaa'],
-        }"
         :filtersOpt="[
-          { type: 'Precio', name: 'Costo' },
-          { name: 'Tipo', type: 'Tipo' },
+          {
+            type: 'Precio',
+            name: 'Costo',
+          },
+          {
+            name: 'Tipo',
+            type: 'Tipo',
+            propToCompare: 'tipo',
+            types: ['Sss', 'Aaaa'],
+          },
         ]"
         :items.sync="items"
         :itemsToShow.sync="itemsToShow"
         action="/crear-producto"
-      >
-      </filterItems>
+      ></filterItems>
 
-      <b-table
-        hover
-        responsive
-        :fields="fields"
-        :items="itemsToShow"
-        v-if="products"
+      <table-component
+        lettersForId="PR"
+        :itemsToShow="tableItems"
+        @deleteItem="deleteProduct"
+        @editItem="editProduct"
       >
-        <template #cell(materias_primas)="data">
+        <template #materias_primas="slotProps">
           <span
-            v-if="data.value.length < 4"
-            v-html="data.value.join('<br/>')"
+            v-if="slotProps.data.value.length < 4"
+            v-html="slotProps.data.value.join('<br/>')"
           ></span>
           <div v-else>
             <span
               v-html="
-                showComplete.find((el) => el.name === data.item.nombre).show_all
-                  ? sourceMaterialsText[data.item.nombre].join('<br>')
-                  : moreExpensiveSourceMaterials(data.value)
+                !showComplete.find(
+                  (el) => el.name === slotProps.data.item.nombre
+                ).show_all
+                  ? sourceMaterialsText[slotProps.data.item.nombre].length
+                  : sourceMaterialsText[slotProps.data.item.nombre].join('<br>')
               "
             >
             </span>
-            <br />
+            <br
+              v-if="
+                showComplete.find(
+                  (el) => el.name === slotProps.data.item.nombre
+                ).show_all
+              "
+            />
             <span
               @click="
                 showComplete.find(
-                  (el) => el.name === data.item.nombre
+                  (el) => el.name === slotProps.data.item.nombre
                 ).show_all = !showComplete.find(
-                  (el) => el.name === data.item.nombre
+                  (el) => el.name === slotProps.data.item.nombre
                 ).show_all
               "
-              class="text-info"
+              class="text-info mt-5"
               style="cursor:pointer;"
             >
               Ver
               {{
-                showComplete.find((el) => el.name === data.item.nombre).show_all
-                  ? "menos"
-                  : "más"
+                !showComplete.find(
+                  (el) => el.name === slotProps.data.item.nombre
+                ).show_all
+                  ? "más"
+                  : "menos"
               }}
             </span>
           </div>
         </template>
-        <template #cell(precio)="data">{{
-          "$" +
-            Number(data.value.replace(/[^0-9&.]/g, "")).toLocaleString("es-AR")
-        }}</template>
-        <template #head(precio)>Costo</template>
-        <template #cell(ID)="data">
-          <b-td class="text-primary" style="white-space:nowrap;"
-            >{{ data.value }}
-          </b-td>
-        </template>
-        <template #head(opt)>{{ `` }}</template>
-        <template #cell(opt)="data"
-          ><b-dropdown right style="max-width:100%;" variant="white" no-caret>
-            <template #button-content>
-              <b-icon
-                scale="1.1"
-                icon="three-dots-vertical"
-                aria-hidden="true"
-              ></b-icon>
-            </template>
-            <b-dropdown-item-button
-              @click.stop="editProduct(data)"
-              tabindex="-1"
-              variant="info"
-            >
-              <b-icon icon="pencil" aria-hidden="true"></b-icon>
-              Editar
-            </b-dropdown-item-button>
-            <b-dropdown-divider></b-dropdown-divider>
-            <b-dropdown-item-button
-              variant="danger"
-              @click.stop="deleteProduct(data)"
-            >
-              <b-icon icon="trash-fill" aria-hidden="true"></b-icon>
-              Eliminar
-            </b-dropdown-item-button>
-          </b-dropdown></template
-        ></b-table
-      >
+      </table-component>
     </div>
   </div>
 </template>
@@ -106,10 +80,14 @@
   import { db } from "../../firebase/firebase.js";
   import { mapState } from "vuex";
   import filterItems from "../../components/filterItems";
+  import idCreator from "../../mixins/idCreator";
+  import tableComponent from "../../components/table";
   export default {
     name: "products",
+    mixins: [idCreator],
     components: {
       filterItems,
+      tableComponent,
     },
     data() {
       return {
@@ -132,8 +110,39 @@
       };
     },
     computed: {
+      tableItems() {
+        let res = this.itemsToShow.map((_arrayElement) =>
+          Object.assign({}, _arrayElement)
+        );
+        for (const item of res) {
+          item.precio = `$${Number(
+            item.precio.split("$")[1]
+          ).toLocaleString()}`;
+          item.opt = "";
+        }
+        return res;
+      },
+      sourceMaterialsText() {
+        let sourceMaterials = {};
+        for (const nameOfActualItem of this.products) {
+          let query = this.products.find(
+            (el) => el.name === nameOfActualItem.name
+          ).sourceMaterials;
+          let p = Object.keys(query).map((el) => {
+            return `${el}:&nbsp;${Number(query[el].howMuch).toLocaleString(
+              "es-AR"
+            )}`;
+          });
+          sourceMaterials[nameOfActualItem.name] = p;
+          this.showComplete.push({
+            name: nameOfActualItem.name,
+            show_all: false,
+          });
+        }
+        return sourceMaterials;
+      },
       items() {
-        let texts = this.sourceMaterialsText();
+        let texts = this.sourceMaterialsText;
         console.log(texts);
         if (this.products) {
           let items = [];
@@ -170,25 +179,6 @@
       ...mapState(["products"]),
     },
     methods: {
-      sourceMaterialsText() {
-        let sourceMaterials = {};
-        for (const nameOfActualItem of this.products) {
-          let query = this.$store.state.products.find(
-            (el) => el.name === nameOfActualItem.name
-          ).sourceMaterials;
-          let p = Object.keys(query).map((el) => {
-            return `${el}:&nbsp;${Number(query[el].howMuch).toLocaleString(
-              "es-AR"
-            )}`;
-          });
-          sourceMaterials[nameOfActualItem.name] = p;
-          this.showComplete.push({
-            name: nameOfActualItem.name,
-            show_all: false,
-          });
-        }
-        return sourceMaterials;
-      },
       async prices() {
         let result = {};
         for (const key in this.products) {
@@ -197,30 +187,10 @@
             "setProductPrice",
             element.name
           );
+          console.log(price);
           result[element.name] = price;
         }
         return result;
-      },
-      moreExpensiveSourceMaterials(array) {
-        let prices = [];
-        for (const iterator of array) {
-          db.ref(
-            `users/${
-              this.$store.getters["user/userProfile"].uid
-            }/sourceMaterials/${iterator.split(":")[0]}/price/amount`
-          ).once("value", (snap) => {
-            let result = snap.val() * iterator.split(":")[1];
-            prices.push({ name: iterator.split(":")[0], price: result });
-          });
-        }
-        let result = prices
-          .sort((a, b) => a.price - b.price)
-          .reverse()
-          .slice(0, 3);
-        let parapraph = result.map((el) =>
-          array.find((text) => text.includes(el.name))
-        );
-        return parapraph.join("<br>");
       },
       async getFinalPrice(name, profit) {
         let prices = await this.prices();

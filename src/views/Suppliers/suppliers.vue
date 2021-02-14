@@ -2,55 +2,25 @@
   <div>
     <h1>Proveedores</h1>
     <filterItems
-      :methodOpt="{
-        types: this.allLocations,
-      }"
       :filtersOpt="[
         {
-          type: 'Tipo',
           name: 'Localidad',
+          type: 'Tipo',
           propToCompare: 'localidad',
+          types: this.allLocations,
         },
       ]"
       :items.sync="items"
       :itemsToShow.sync="itemsToShow"
       action="/crear-proveedor"
     ></filterItems>
-    <b-table hover responsive :items="itemsToShow" v-if="items.length > 0">
-      <template #head(opt)> {{ "" }}</template>
-      <template #cell(ID)="data">
-        <b-td class="text-primary">
-          {{ createId("PR", data.value) }}
-        </b-td>
-      </template>
-      <template #cell(opt)="data">
-        <b-dropdown right variant="white" no-caret>
-          <template #button-content>
-            <b-icon
-              scale="1.1"
-              icon="three-dots-vertical"
-              aria-hidden="true"
-            ></b-icon>
-          </template>
-          <b-dropdown-item-button
-            @click.stop="editSupplier(data)"
-            tabindex="-1"
-            variant="info"
-          >
-            <b-icon icon="pencil" aria-hidden="true"></b-icon>
-            Editar
-          </b-dropdown-item-button>
-          <b-dropdown-divider></b-dropdown-divider>
-          <b-dropdown-item-button
-            variant="danger"
-            @click.stop="deleteSupplier(data)"
-          >
-            <b-icon icon="trash-fill" aria-hidden="true"></b-icon>
-            Eliminar
-          </b-dropdown-item-button>
-        </b-dropdown>
-      </template>
-    </b-table>
+    <table-component
+      lettersForId="PV"
+      :itemsToShow="itemsToShow"
+      @deleteItem="deleteSupplier"
+      @editItem="editSupplier"
+    >
+    </table-component>
   </div>
 </template>
 
@@ -59,11 +29,13 @@
   import { mapState } from "vuex";
   import filterItems from "../../components/filterItems";
   import idCreator from "../../mixins/idCreator";
+  import tableComponent from "../../components/table";
   export default {
     name: "suppliers",
     mixins: [idCreator],
     components: {
       filterItems,
+      tableComponent,
     },
     data() {
       return {
@@ -107,10 +79,9 @@
             `users/${this.$store.getters["user/userProfile"].uid}/suppliers/${data.item.ID}`
           )
           .remove();
-        this.setItems(this.suppliers);
       },
-      editSupplier(name) {
-        this.$store.commit("changeName", name.item.ID);
+      editSupplier(data) {
+        this.$store.commit("changeName", data.item.ID);
         this.$router.push("ver-proveedor");
       },
     },

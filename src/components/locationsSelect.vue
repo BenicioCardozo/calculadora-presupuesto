@@ -3,7 +3,6 @@
     :value="value"
     :options="cities"
     @change="handleSelectionOfValue"
-    ref="s"
   >
     <b-form-select-option selected disabled value="Ciudad"
       >Ciudad</b-form-select-option
@@ -26,7 +25,7 @@
     },
     methods: {
       handleSelectionOfValue(newValue) {
-        this.$emit("change", newValue);
+        this.$emit("updateValue", { prop: "loc", newValue: newValue });
       },
     },
   };
